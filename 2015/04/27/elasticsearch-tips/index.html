@@ -96,23 +96,25 @@
 
 
 
-  <meta name="description" content="junheng | scala | java | akka | architect | machine learning | AI">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Memory Unit 01">
-<meta property="og:url" content="http://junheng.github.com/tags/MacOS/index.html">
+  <meta name="description" content="强制一致性, 从primary shard获取数据, preference=primary_first 直接调用相关索引的分析器,  /index/_analyze?analyzer=ik_smart想到再补充 查看服务器正在运行的线程, /_nodes/prmes01/hot_threads">
+<meta name="keywords" content="Elasticsearch">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Elasticsearch Tips">
+<meta property="og:url" content="http://junheng.github.com/2015/04/27/elasticsearch-tips/index.html">
 <meta property="og:site_name" content="Memory Unit 01">
-<meta property="og:description" content="junheng | scala | java | akka | architect | machine learning | AI">
+<meta property="og:description" content="强制一致性, 从primary shard获取数据, preference=primary_first 直接调用相关索引的分析器,  /index/_analyze?analyzer=ik_smart想到再补充 查看服务器正在运行的线程, /_nodes/prmes01/hot_threads">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-03-26T05:54:17.024Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Memory Unit 01">
-<meta name="twitter:description" content="junheng | scala | java | akka | architect | machine learning | AI">
+<meta name="twitter:title" content="Elasticsearch Tips">
+<meta name="twitter:description" content="强制一致性, 从primary shard获取数据, preference=primary_first 直接调用相关索引的分析器,  /index/_analyze?analyzer=ik_smart想到再补充 查看服务器正在运行的线程, /_nodes/prmes01/hot_threads">
 
 
 
 
 
 
-  <link rel="canonical" href="http://junheng.github.com/tags/MacOS/">
+  <link rel="canonical" href="http://junheng.github.com/2015/04/27/elasticsearch-tips/">
 
 
 
@@ -122,7 +124,7 @@
   };
 </script>
 
-  <title>标签: MacOS | Memory Unit 01</title>
+  <title>Elasticsearch Tips | Memory Unit 01</title>
   
 
 
@@ -170,7 +172,7 @@
     
   
 
-  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left ">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -246,7 +248,7 @@
         
         
           
-          <li class="menu-item menu-item-tags menu-item-active">
+          <li class="menu-item menu-item-tags">
 
     
     
@@ -302,28 +304,6 @@
   
     
 
-    
-    
-      
-      
-    
-      
-      
-    
-      
-      
-    
-      
-      
-    
-      
-      
-    
-    
-
-  
-
-
   
 
   
@@ -348,57 +328,194 @@
           <div id="content" class="content">
             
 
-  
-  
-  
-  <div class="post-block tag">
+  <div id="posts" class="posts-expand">
+    
 
-    <div id="posts" class="posts-collapse">
-      <div class="collection-title">
-        <h1>MacOS<small>标签</small>
-        </h1>
-      </div>
+  
 
-      
-        
+  
+  
+  
+
+  
 
   <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://junheng.github.com/2015/04/27/elasticsearch-tips/">
 
-      <h2 class="post-title">
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="龚俊衡 Gong Junheng">
+      <meta itemprop="description" content="junheng | scala | java | akka | architect | machine learning | AI">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Memory Unit 01">
+    </span>
+
+    
+      <header class="post-header">
+
         
-          <a class="post-title-link" href="/2015/02/24/MacOS小技巧/" itemprop="url">
-            
-              <span itemprop="name">MAC OS X 小技巧</span>
-            
-          </a>
         
-      </h2>
+          <h1 class="post-title" itemprop="name headline">Elasticsearch Tips
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated" datetime="2015-02-24T16:10:31+08:00" content="2月 24 2015">
-          02-24
-        </time>
-      </div>
+              
+            
+          </h1>
+        
 
-    </header>
-  </article>
+        <div class="post-meta">
+          <span class="post-time">
 
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：4月 27 2015 14:05:14" itemprop="dateCreated datePublished" datetime="2015-04-27T14:05:14+08:00">4月 27 2015</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：3月 26 2019 13:54:17" itemprop="dateModified" datetime="2019-03-26T13:54:17+08:00">3月 26 2019</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ol>
+<li>强制一致性, 从primary shard获取数据, preference=primary_first</li>
+<li>直接调用相关索引的分析器,  /index/_analyze?analyzer=ik_smart<br>想到再补充</li>
+<li>查看服务器正在运行的线程, /_nodes/prmes01/hot_threads</li>
+</ol>
 
       
     </div>
 
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Elasticsearch/" rel="tag"># Elasticsearch</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/02/24/MacOS小技巧/" rel="next" title="MAC OS X 小技巧">
+                <i class="fa fa-chevron-left"></i> MAC OS X 小技巧
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/03/20/基于Hexo的使用备忘/" rel="prev" title="Hexo 的使用备忘">
+                Hexo 的使用备忘 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </div>
   
   
   
+  </article>
 
-  
 
+  </div>
 
 
           </div>
           
+
+  
+
+
 
         </div>
         
@@ -653,6 +770,10 @@
 
 
   
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
 
   
 
@@ -668,6 +789,8 @@
 
   
 
+
+  
 
 
   
