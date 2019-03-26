@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '7.0.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="关于RDD本文基于Spark 2.x写作 由于 Spark 在 Driver 中进行编程和执行, 并且交由整个分布式系统进行并行化, 其最基本的数据表现方式则称之为 RDD - 一个不可变的分布式对象集合, 这些对象以 Partitions (分片) 的形式存储在分布于各个不同物理节点中的Executor 中. Lazy Evaluation调试 Spark 程序时需要注意一点, 在Driver中">
+<meta name="keywords" content="Spark, Bigdata">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spark 基础概念">
+<meta property="og:url" content="http://junheng.github.com/2019/03/26/spark_basic_concept/index.html">
+<meta property="og:site_name" content="Memory Unit 01">
+<meta property="og:description" content="关于RDD本文基于Spark 2.x写作 由于 Spark 在 Driver 中进行编程和执行, 并且交由整个分布式系统进行并行化, 其最基本的数据表现方式则称之为 RDD - 一个不可变的分布式对象集合, 这些对象以 Partitions (分片) 的形式存储在分布于各个不同物理节点中的Executor 中. Lazy Evaluation调试 Spark 程序时需要注意一点, 在Driver中">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-03-26T05:38:28.206Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spark 基础概念">
+<meta name="twitter:description" content="关于RDD本文基于Spark 2.x写作 由于 Spark 在 Driver 中进行编程和执行, 并且交由整个分布式系统进行并行化, 其最基本的数据表现方式则称之为 RDD - 一个不可变的分布式对象集合, 这些对象以 Partitions (分片) 的形式存储在分布于各个不同物理节点中的Executor 中. Lazy Evaluation调试 Spark 程序时需要注意一点, 在Driver中">
+
+
+
+
+
+
+  <link rel="canonical" href="http://junheng.github.com/2019/03/26/spark_basic_concept/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Spark 基础概念 | Memory Unit 01</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Memory Unit 01</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">学而不思则罔, 思而不学则殆</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://junheng.github.com/2019/03/26/spark_basic_concept/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="龚俊衡 Gong Junheng">
+      <meta itemprop="description" content="junheng | scala | java | akka | architect | machine learning | AI">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Memory Unit 01">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Spark 基础概念
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：3月 26 2019 13:12:41 / 修改时间：13:38:28" itemprop="dateCreated datePublished" datetime="2019-03-26T13:12:41+08:00">3月 26 2019</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Bigdata/" itemprop="url" rel="index"><span itemprop="name">Bigdata</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="关于RDD"><a href="#关于RDD" class="headerlink" title="关于RDD"></a>关于RDD</h2><p>本文基于Spark 2.x写作</p>
+<p>由于 Spark 在 Driver 中进行编程和执行, 并且交由整个分布式系统进行并行化, 其最基本的数据表现方式则称之为 <em>RDD</em> - 一个不可变的分布式对象集合, 这些对象以 <em>Partitions</em> (分片) 的形式存储在分布于各个不同物理节点中的<em>Executor</em> 中.</p>
+<h4 id="Lazy-Evaluation"><a href="#Lazy-Evaluation" class="headerlink" title="Lazy Evaluation"></a>Lazy Evaluation</h4><p>调试 Spark 程序时需要注意一点, 在<em>Driver</em>中编写的程序并不是按顺序运行的,  所有的 <em>Transformations</em> 动作需要等到即将有一个 <em>Action</em> 将要被执行并需要需要用到进行了相关转换的 <em>RDD</em> 时才会被执行. 并且这些 <em>RDD</em> 中的数据, 将会在 <em>Executor</em> 中尽可能的被保持在内存中, 以便需要的时候快速的重算和进行进一步计算.</p>
+<p>大部分分布式系统的内存式存储是基于细粒度的, 可以对每一个可变的存储单元进行更新, 例如更新一行, 或者一个行中一个属性, 与之相反对于 <em>RDD</em> 来说更新数据的唯一办法就是生成一个新的 <em>RDD</em> 并且这个更新动作需要延迟到一个相关的 <em>Action</em> 被执行, 通常是输出, 或者需要将数据送回到 <em>Driver</em> 进行进一步处理得情况, 例如聚合, 计数等等.</p>
+<p><em>Actions</em> 通过 <em>Scheduler</em>触发计算过程, <em>Scheduler</em> 将会基于 <em>RDD</em> 的 <em>Transformations</em> 的依赖关系创建一个 <em>DAG</em> 即有向无环图, 换句话说, 这些 <em>Transformations</em> 中的闭包函数将会基于 <em>Executor</em> 中的 <em>Partitions</em> 进行计算, 这个过程被称之为 <em>Plan</em>.</p>
+<p>Lazy 执行允许 <em>Spark</em> 合并大量的 <em>Transformations</em> 和 <em>Actions</em> 这样可以减少和 <em>Driver</em> 的通讯次数.</p>
+<h5 id="容错"><a href="#容错" class="headerlink" title="容错"></a>容错</h5><p><em>Spark</em> 支持容错, 这样 <em>Spark</em> 不容易失败, 丢失数据或者返回不准确的数据,(节点失败or网络失败), 能够做到这一点的关键是, 每个 <em>Partition</em> 中的数据都包含的所有的依赖信息,  一旦需要可以执行这些所有的计算, 以便重新构建数据, 这种技术相比通常的分布式系统使用冗余数据或者使用 <em>update-log</em> (更新记录)来进行数据恢复在速度和可靠性上取得了良好的平衡.</p>
+<h5 id="调试"><a href="#调试" class="headerlink" title="调试"></a>调试</h5><p>因为在 <em>Spark</em> 中仅有 <em>Actions</em> 会导致计算并出现可能的失败, 所以异常的堆栈通常会指向这些 <em>Actions</em> 中的函数, 但通常并非 <em>Actions</em> 导致, 例如一个 <em>collect</em> 操作出现异常, 通常是由之前的复杂的 <em>map</em>, <em>mapPartition</em> 等等 <em>Transformations</em> 导致, 在这个时候通常需要通过日志输出, 并在错误发生后, 查询对应 <em>Executor</em> 日志来进行进一步定位问题.</p>
+<h4 id="关于内存"><a href="#关于内存" class="headerlink" title="关于内存"></a>关于内存</h4><p>相比起 <em>Hadoop MapReduce</em> 来说 <em>Spark</em> 的一个巨大改进是使用内存来持久化将要进行计算或者计算中的数据, 这对于基于 <em>Partition</em> 依赖的数据重算和不同 <em>Action</em> 之间的数据重复利用有非常大的优势.</p>
+<p><em>Spark</em> 给出了三种持久化方案, 他们各自具备一些空间和时间上的优势:</p>
+<ol>
+<li><p><strong><em>内存中的非序列化数据</em></strong></p>
+<p>这是最直接和最快速的一种方式, 将Java对象直接存放在内存中, 具备最快的访问速度, 但是会消耗相对比较大的内存空间</p>
+</li>
+<li><p><strong><em>内存中的序列化数据</em></strong></p>
+<p>使用Java序列化库, 对象将会被转换为字节流的方式进行存储, 这样相对于非序列化数据会多出序列化-反序列化的时间和CPU开销, 也许在一些CPU密集型计算中不是特别实用, 但是在绝大多数情况下, 这个选项会在很大程度上节省内存空间.</p>
+</li>
+<li><p><strong><em>存放于磁盘中的序列化数据</em></strong></p>
+<p>如果数据量非常大, 以至于整个集群的<em>Executor</em>存储空间不足以放下所有数据, 那么最后的选择就是将 <em>Partitions</em> 的数据持久化到磁盘上, 相比前面两种方案, 这种方案是最慢的, 但是考虑到一些计算流程非常长的计算流程, 与其让一些 <em>Task</em> 因为内存不足失败而导致长时间的重算, 不如选择相对稳妥的办法.</p>
+</li>
+</ol>
+<p><em>persist()</em> 函数可以手工控制计算流中的 <em>RDD</em> 如何进行持久化, 默认情况下, <em>persist()</em> 函数使用第一种策略即在内存中直接使用Java对象进行缓存, 但是在没有调用这个函数之前, <em>Spark</em> 在内存空间不足以放下新的 <em>Partitions</em> 的情况下, 默认采用最近最少使用的(LRU)缓存淘汰策略.</p>
+<h5 id="关于不可变和一些重要接口"><a href="#关于不可变和一些重要接口" class="headerlink" title="关于不可变和一些重要接口"></a>关于不可变和一些重要接口</h5><p>一个 <em>RDD</em> 包含5个重要的部分, <em>Partitions</em> 用于存放数据, 通过 <em>partitions()</em> 函数可以访问所有的分片, <em>iterator()</em> 函数由Spark内部调用, 按照固定顺序重算此 <em>Partitions</em> 相关的依赖的所有计算过程, <em>dependenices()</em> 列出此RDD所有相对于其他RDD的依赖,  <em>partitioner()</em> 分区器提供一个函数用以 <em>elements</em> 到 <em>partitions</em> 的分配, 这个函数在非kv结构 <em>RDD</em> 的情况下将会返回None,  <em>preferredLocatiions(p)</em> 返回关于指定 <em>Partition</em> 本地化的信息, 包括存储的节点, HDFS的路径等等.</p>
+<p>所有的类型的 <em>RDD</em> 都需要实现 <em>RDD</em> 这个虚类, 例如, <em>NewHadoopRDD</em> 通常是基于HDFS文件系统创建的 <em>RDD</em>, <em>ShuffedRDD</em> 表示RDD中数据已经分区, 不同类型的 <em>RDD</em> 具备不同的 <em>API</em> 函数, 例如 <em>reduceByKey()</em></p>
+<blockquote>
+<p>要知道目前使用的RDD是哪种类型, 可以通过<em>toDebugString</em>的方式以日志方式在<em>Driver</em>中输出</p>
+</blockquote>
+<h5 id="Transformations-和-Actions"><a href="#Transformations-和-Actions" class="headerlink" title="Transformations 和 Actions"></a>Transformations 和 Actions</h5><p>RDD中包含两种类型的函数, <em>Transformations</em> 和 <em>Actions</em>,</p>
+<ul>
+<li><em>Actions</em> -  返回一些不是RDD的东西</li>
+<li><em>Transformations</em> -  基于闭包函数内容, 返回一个新的RDD</li>
+</ul>
+<p>每一个 <em>Spark</em> 程序都至少需要包含一个 <em>Action</em>, 通常 <em>Action</em> 会将一些信息计算并送回 <em>Driver</em> 或者将RDD的数据输出到一个外部存储, 例如HDFS, S3等.</p>
+<h5 id="Wide-Dependencies-和-Narrow-Dependencies"><a href="#Wide-Dependencies-和-Narrow-Dependencies" class="headerlink" title="Wide-Dependencies 和 Narrow-Dependencies"></a>Wide-Dependencies 和 Narrow-Dependencies</h5><p>为了更加清楚的解释 <em>RDD</em> 如何被创建出来, 需要了解到一个重要的概念 - 所有的 <em>Transformations</em> 在经过 <em>Scheduler</em> 解析之后会形成两种不同依赖, Wide(宽依赖) 以及 Narrow(窄依赖).</p>
+<p>从概念上来讲, 窄依赖的 <em>Transformations</em> 就是在RDD中的每个 <em>Partitions</em> 在父 <em>RDD</em> 中拥有简单有限的 <em>Partitions</em> 依赖并且可以在 <em>plan</em> 进行创建的阶段就能够确定, 例如1-1对应的函数map, 例如每个拥有唯一一个子集 <em>coalesce</em> 函数.</p>
+<p>窄依赖可以在一部分数据(分片)上进行 <em>Transformations</em> 而不必知晓其他部分数据和分片的信息, 相反, 宽依赖无法只依赖确切的一部分数据(分片), 而必须要求数据以特定的方式分区和存储, 导致产生宽依赖的 <em>Transformations</em> 和 <em>Actions</em> 包括, <em>sort</em>, <em>reduceByKey</em>, <em>groupByKey</em>, <em>join</em>, 和一切导致 <em>repartition</em> 的行为.</p>
+<p>如果一个 <em>Transformations</em> 可能会导致 <em>shuffle</em> 那么Spark会在当前RDD的依赖中加入 <em>ShuffledDependency</em> , 当需要对此 <em>RDD</em> 相关的 <em>Partitions</em> 执行计算时, <em>shuffle</em> 将会被执行.</p>
+<h2 id="关于Job"><a href="#关于Job" class="headerlink" title="关于Job"></a>关于Job</h2><p>针对每个 <em>Action</em> Spark都将产生出一个 DAG, 并且启动一个被称之为 <em>Job</em> 的实体, 在 <em>Job</em> 中, 有称之为 <em>Stages</em> 的概念, 用于基于设计好的 <em>Transformations</em> 将输入 <em>RDD</em> 一步步的转换为最终输出 <em>RDD</em>, 每个 <em>Stage</em> 中又包含了若干个 <em>Task</em>, 而每个 <em>Task</em> 则是可以被 <em>Executor</em> 执行的最基本单元.</p>
+<p>之前提高过 RDD 宽依赖的问题, 在执行时, 宽依赖就会被体现为一个一个独立的 Stages, Stages 越多, 大部分情况下整体的执行效率就会越差(数据倾斜的问题后面调整, 这种情况所有不同)</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Spark-Bigdata/" rel="tag"># Spark, Bigdata</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/03/26/强化学习概念/" rel="next" title="增强学习概念">
+                <i class="fa fa-chevron-left"></i> 增强学习概念
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">龚俊衡 Gong Junheng</p>
+              <div class="site-description motion-element" itemprop="description">junheng | scala | java | akka | architect | machine learning | AI</div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">3</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#关于RDD"><span class="nav-number">1.</span> <span class="nav-text">关于RDD</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Lazy-Evaluation"><span class="nav-number">1.0.1.</span> <span class="nav-text">Lazy Evaluation</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#容错"><span class="nav-number">1.0.1.1.</span> <span class="nav-text">容错</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#调试"><span class="nav-number">1.0.1.2.</span> <span class="nav-text">调试</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#关于内存"><span class="nav-number">1.0.2.</span> <span class="nav-text">关于内存</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#关于不可变和一些重要接口"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">关于不可变和一些重要接口</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Transformations-和-Actions"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">Transformations 和 Actions</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Wide-Dependencies-和-Narrow-Dependencies"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">Wide-Dependencies 和 Narrow-Dependencies</span></a></li></ol></li></ol></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#关于Job"><span class="nav-number">2.</span> <span class="nav-text">关于Job</span></a></li></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">龚俊衡 Gong Junheng</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.1"></script>
+
+  <script src="/js/src/motion.js?v=7.0.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=7.0.1"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
+
+  
+
+
+  <script src="/js/src/next-boot.js?v=7.0.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+  
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') { next = next.nextSibling }
+        if (next && next.nodeName.toLowerCase() === 'br') { next.parentNode.removeChild(next) }
+      }
+    });
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      document.getElementById(all[i].inputID + '-Frame').parentNode.className += ' has-jax';
+    }
+  });
+</script>
+<script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- Begin: Injected MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config("");
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src>
+</script>
+<!-- End: Injected MathJax -->
+<!-- hexo-inject:end -->
+
+    
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

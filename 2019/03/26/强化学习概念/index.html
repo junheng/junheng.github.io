@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '7.0.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="目录 概述 有模型的学习 策略,环境和奖励 进行学习 策略迭代 价值迭代     蒙特卡洛方法 资料引用  概述增强学习的过程大概可以用一场游戏来表示, 玩家在一个状态下, 基于一个策略做出一个行为, 这个行为在环境中导致环境变化并且玩家的状态也发生了变化, 在新的状态下, 玩家会得到奖励(奖励可能是负面的), 那么 在有限的回合中, 玩家的目标是在到游戏最后时, 将奖励最大化.用一个流程图来表示">
+<meta name="keywords" content="Machine Learning, Reinforcement Learning">
+<meta property="og:type" content="article">
+<meta property="og:title" content="增强学习概念">
+<meta property="og:url" content="http://junheng.github.com/2019/03/26/强化学习概念/index.html">
+<meta property="og:site_name" content="Memory Unit 01">
+<meta property="og:description" content="目录 概述 有模型的学习 策略,环境和奖励 进行学习 策略迭代 价值迭代     蒙特卡洛方法 资料引用  概述增强学习的过程大概可以用一场游戏来表示, 玩家在一个状态下, 基于一个策略做出一个行为, 这个行为在环境中导致环境变化并且玩家的状态也发生了变化, 在新的状态下, 玩家会得到奖励(奖励可能是负面的), 那么 在有限的回合中, 玩家的目标是在到游戏最后时, 将奖励最大化.用一个流程图来表示">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-03-26T05:31:37.882Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="增强学习概念">
+<meta name="twitter:description" content="目录 概述 有模型的学习 策略,环境和奖励 进行学习 策略迭代 价值迭代     蒙特卡洛方法 资料引用  概述增强学习的过程大概可以用一场游戏来表示, 玩家在一个状态下, 基于一个策略做出一个行为, 这个行为在环境中导致环境变化并且玩家的状态也发生了变化, 在新的状态下, 玩家会得到奖励(奖励可能是负面的), 那么 在有限的回合中, 玩家的目标是在到游戏最后时, 将奖励最大化.用一个流程图来表示">
+
+
+
+
+
+
+  <link rel="canonical" href="http://junheng.github.com/2019/03/26/强化学习概念/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>增强学习概念 | Memory Unit 01</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Memory Unit 01</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">学而不思则罔, 思而不学则殆</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://junheng.github.com/2019/03/26/强化学习概念/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="龚俊衡 Gong Junheng">
+      <meta itemprop="description" content="junheng | scala | java | akka | architect | machine learning | AI">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Memory Unit 01">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">增强学习概念
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：3月 26 2019 13:06:48 / 修改时间：13:31:37" itemprop="dateCreated datePublished" datetime="2019-03-26T13:06:48+08:00">3月 26 2019</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Machine-Learning/" itemprop="url" rel="index"><span itemprop="name">Machine Learning</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ol>
+<li><a href="#user-content-概述">概述</a></li>
+<li><a href="#user-content-有模型的学习">有模型的学习</a><ol>
+<li><a href="#user-content-策略,环境和奖励">策略,环境和奖励</a></li>
+<li><a href="#user-content- 进行学习">进行学习</a><ol>
+<li><a href="#user-content-策略迭代 Policy Iteration">策略迭代</a></li>
+<li><a href="#user-content-价值迭代 Value Iteration">价值迭代</a></li>
+</ol>
+</li>
+</ol>
+</li>
+<li><a href>蒙特卡洛方法</a></li>
+<li><a href="#user-content-资料引用">资料引用</a></li>
+</ol>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>增强学习的过程大概可以用一场游戏来表示, <strong>玩家在一个状态下, 基于一个策略做出一个行为, 这个行为在环境中导致环境变化并且玩家的状态也发生了变化, 在新的状态下, 玩家会得到奖励(奖励可能是负面的), 那么 在有限的回合中, 玩家的目标是在到游戏最后时, 将奖励最大化.</strong>用一个流程图来表示大概就是这样:</p>
+<pre><code class="mermaid">graph TD
+Agent --current state--&gt; Policy
+Policy --make action --&gt; Environment
+Environment --state transition &amp; enviroment changed--&gt; nState[New State]
+nState --state reward--&gt; Agent
+</code></pre>
+<ol>
+<li>Agent 玩家</li>
+<li>Policy 策略</li>
+<li>Action 动作</li>
+<li>Environment 环境(规则)</li>
+<li>State Transition 状态转换</li>
+<li>State Reward 状态奖励</li>
+</ol>
+<p>整个游戏的目标则是最大化这个公式:<br>$$<br>max\sum_{t=0}^TR_{t}<br>$$<br>其中$t$为代表当前回合,$T$代表进行了的总回合数$R_{t}$代表$t$ 回合时的奖励</p>
+<h2 id="有模型的学习"><a href="#有模型的学习" class="headerlink" title="有模型的学习"></a>有模型的学习</h2><h3 id="策略-环境和奖励"><a href="#策略-环境和奖励" class="headerlink" title="策略,环境和奖励"></a>策略,环境和奖励</h3><p>从之前的图中可以看到, 整个决策进行实际上就可以看到, 整个游戏过程可以记录为若干次 <em>状态-行为</em> 导致的效用 <em>Utility</em> 于是对于一个任意时刻 $t$ 我们就有 $U_{t}=\lbrace s_{t},a_{t},s_{t+1} \rbrace$ , 其中从 $s_t$ 到 $a_t$ 代表 <code>Agent</code> 基于 <code>Policy</code> 做出了一个 <code>Action</code> , 那么从 $a_t$ 到 $s_{t+1}$ 则是由 <code>Environment</code> 来决定这次 <code>Action</code> 造成新的 <code>State</code> $s_{t+1}$ 到底是什么, 从而获得这一步的 <code>Reward</code> . 那么对于整场游戏 $G$ 来说, 则是 $G = \lbrace U_{0},U_{1},U_{2}…U_{t} \rbrace $</p>
+<h4 id="策略"><a href="#策略" class="headerlink" title="策略"></a>策略</h4><p>那么接下来需要讨论的是 策略 <code>Policy</code> 到底是什么, 在游戏进行到某个时间点 $t$ 的时候策略需要给出接下来选择什么 行为 <code>Action</code> , 对于玩家来说, 当然是选择 <em>当前状态下最好的行为</em></p>
+<p>最好的情况当然是我能关注最多的信息, 比如比如从游戏开始到现在, 那么就是 $p(a_i|\lbrace s_0,s_1,s_2…s_t \rbrace)$ 意思就是在 $t$ 时刻, 给定过去所有的状态 $\lbrace s_0,s_1,s_2…s_t \rbrace$ 从所有待选的 <code>Action</code> 中, 选出一个 $a_i$. 现在考虑下, 如果每一步策略都需要考虑从开始到现在所有的状态, 那么越往后, 计算量就越大, 而通常 $t$ 是无限的, 也就是说, 到最后计算就变成了不可能的任务.</p>
+<p>我们需要简化这种情况, 让 <code>Policy</code> 只考虑当前状态, 因此公式就简化成 $p(a_i|s_t)$, 这下无论游戏进行到什么程度, <code>Policy</code> 只考虑当前状态下的一个最优选择.</p>
+<h4 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h4><p>在作出选择之后, <code>Policy</code> 的任务就结束了, 接下来是环境 <code>Environment</code> 可以用这个式子来简单描述 $p(s_{t+1}|a_i,s_t)$ , 当用户做出一个 <code>Action</code> 之后, 环境的职责是基于这个 <code>Action</code> 和  当前 <code>State</code> 给出新的 <code>State</code> , 需要注意的是, <code>Enviroment</code> 这里给出的是一个概率, 也就是是说, 给定 $a_i$ 和 $s_t$ 的时候, 会产生多个新状态, 其概率和为1.</p>
+<h4 id="奖励"><a href="#奖励" class="headerlink" title="奖励"></a>奖励</h4><p>我们在上面已经提到了以下几个概念:</p>
+<ol>
+<li>行为选择 $p(a_i|s_t)$</li>
+<li>环境选择 $p(s_{t+1}|a_i,s_t)$</li>
+<li>行为和效用 <em>Utility</em> $U_{t}=\lbrace s_{t},a_{t},s_{t+1} \rbrace$</li>
+</ol>
+<p>因此我们可以引入一个理论 <strong>MDP 马尔可夫决策过程</strong>, 这个过程规定了下一个状态只是和前一个状态产生依赖,  决策代表从 <code>Action</code> 选择由玩家 <code>Agent</code> 来进行选择, 其他部分具备随机性, 过程代表整体有序, 一轮一轮的递推进行.<br>可以看到行为选择和环境选择都是一个概率, 而环境不是 <code>Agent</code> 能够改变的, 玩家能控制的只有 <code>Action</code> 的选择, 这里我们需要引入奖励 <code>Reward</code> 的概念, 在进入不同的 <code>State</code> 时会获得不同的 <code>Reward</code>, 整个游戏的目标则是: <em>如何做出选择才能够最大化</em> $max\sum_{t=0}^TR_{t}$. 但是这个公式还是有个问题, 如果 $T=\infty$ , 也就是说游戏无限回合的进行下去, 那么无论我们怎么设置 <code>Reward</code> , 只要概率上整体是一个正数, 那么公式 $max\sum_{t=0}^TR_{t}$ 就等于无限大, 如果概率上整体趋近于负数, 那么最大化这个式子最好的方法就是干脆什么都不做.(或者尽可能少进行几次选择, 取决于<code>Environment</code>).</p>
+<p>因此我们需要降低对未来奖励的期待, 或者说加入一个时间成本, 因此我们引入一个新的系数 $0&lt;\lambda&lt;1$ , 而需要优化的公式就变成:<br>$$<br>\sum_{t=0}^T\lambda^tR_t<br>$$<br>那么这个公式就变得可以计算了, 因为随着$t$增加, 整体将会会越来越低, 并最终趋近于0. 再次我们要定义一个概念叫长期回报 <code>Return</code>, 长期回报的意思是说从一个状态出发, 基于一个策略 <code>Policy</code> 将这个基于这个策略后续所有游戏的奖励汇总的值, 这样我们就可以衡量不同策略的优劣, 因此我们需要就 MDP 的概念中的状态价值函数.</p>
+<h5 id="状态价值函数"><a href="#状态价值函数" class="headerlink" title="状态价值函数"></a>状态价值函数</h5><p>求出当前状态 $s$ 下基于策略 $\pi$ 的长期回报 $V$, 也就是说, 使用这个特定的策略从当前状态出发, 将所有的可能的行为-状态组合全部走一遍, 然后将这些组合的长期回报进行<em>加权平均</em>, 由于路径是无限的, 因此就有公式如下:<br>$$<br>V_\pi(s)=\sum_{path}p(path)\sum_{t=0}^\infty\lambda^tR_{path[t]}<br>$$<br>其中 $path$ 代表所有可能组合中的一种, $p(path)$ 代表某一种 path 组合的概率, $path[t]$ 代表某一个 $path$ 中的第 $t$ 回合, $\pi$ 则是代表环境<code>Environment</code></p>
+<p>由于整个过程是一个马尔科夫决策过程, 所以我们可以把 $path$ 进行展开:<br>$$<br>V_\pi(s)=\sum_{path}\pi(a_0|s_0)p(s_1|s_0,a_0)….\sum_{t=0}^\infty\lambda^tR_{path[t]}<br>$$<br>如公式, $p(path)$ 被展开成为了 $\pi(a_0|s_0)p(s_1|s_0,a_0)….$</p>
+<p>这个公式由于存在 $\infty$ 依然还是无法进行计算, 所以我们还需要进一步进行处理,</p>
+<p>考虑 $s_0$ 的情况:<br>$$<br>V_\pi(s_0)=\sum_{path}\pi(a_0|s_0)p(s_1|s_0,a_0)….\sum_{t=0}^\infty\lambda^tR_{path[t]} \<br>=\sum_{a_0}\pi(a_0|s_0)\sum_{s_1}p(s_1|s_0,a_0)\sum_{path}\pi(a_1|s_1)\sum_{path}p(s_2|a_1,s_1)…\sum_{t=1}^\infty\lambda^tR_{path[t]}<br>$$<br>然后考虑 $s_1$ 的情况:<br>$$<br>V_\pi(s_1)=\sum_{a_1}\pi(a_1|s_1)\sum_{s_2}p(s_2|s_1,a_1)\sum_{path}\pi(a_2|s_2)\sum_{path}p(s_3|a_2,s_2)…\sum_{t=2}^\infty\lambda^tR_{path[t]}<br>$$<br>然后稍微简化一下,<br>$$<br>V_\pi(s_0)=\sum_{a_0}\pi(s_0|a_0)\sum_{s_1}p(s_1|s_0,a_0)[R_{s_1}+V_\pi(s_1)]<br>$$<br>简单解释下这个公式怎么来的, 参考公式$(5)$和公式$(6)$, 我们能够发现, $s_0$ 的长期回报价值等于基于策略$\pi$选出的行动$a_0$对下一个状态 $s_1$ 的所有可能的状态的奖励 $R_{s_1}$ 加上这个状态的长期回报价值. 也就是说给定任意一个状态$s$基于策略$\pi$可以计算出到达下一个状态的价值, 如此递归的进行下去, 我们就可以得到一个 <em>状态-行为</em> 的长期回报价值了.<br>$$<br>q_\pi(s,a)=\sum_{s’}p(s’|s,a)\sum_{a’}p(a’|s’)[R_{s’}+q_\pi(s’,a’)]<br>$$</p>
+<blockquote>
+<p>这种递归进行的计算被称之为贝尔曼公式]()(<a href="https://en.wikipedia.org/wiki/Bellman_equation" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Bellman_equation</a>)</p>
+</blockquote>
+<h4 id="优化目标"><a href="#优化目标" class="headerlink" title="优化目标"></a>优化目标</h4><p>有了贝尔曼公式, 那么我们就能去寻找最优策略, 基于最开始提到的公式$(1)$, 那么最优策略则则是:</p>
+<p>$$<br>\pi^*=argmax_{\pi}E_s[V_{\pi}(s)]<br>$$</p>
+<p>意思是, 给定状态$s$求策略$\pi$使得对于状态$s$的期望长期回报最大化, 我们知道$\pi$可以看做一个基于$s$返回$a$的函数, 因此公式$(9)$可以视作:</p>
+<p>$$<br>a^*=argmax_aE_s[V_{\pi}(s)]<br>$$</p>
+<p>即是给定状态$s$求行为$a$使得状态$s$的期望长期回报最大化, 而公式中的$V_{\pi}(s)$则正是公式$(7)$给出的定义.</p>
+<blockquote>
+<p>注意我们这里用到了$E_s$ 因为 $V_{\pi}(s)$ 是一个全概率展开之后的结果, 因此我们使用在 $s$ 状态下的期望价值来进行评估.</p>
+</blockquote>
+<h3 id="策略迭代-Policy-Iteration"><a href="#策略迭代-Policy-Iteration" class="headerlink" title="策略迭代 Policy Iteration"></a>策略迭代 Policy Iteration</h3><p>我们现在有了我们的状态-行为公式$(8)$ 也有能够衡量状态价值的$(7)$, 那么一个有趣的状态出现了, 计算状态价值, 我们需要策略 $\pi$, 而计算最优的的策略 $\pi^*$ 我们又需要获知状态价值, 变成了一个先有鸡还是先有蛋的问题.</p>
+<p>在公式$(7)$中我们可以看到, 策略 $\pi$ 的作用就是基于一个状态 $s_t$ 返回一个行为 $a$, 那么给定一个状态, 在一开始, 我们并不知道什么策略更好的时候大可以直接初始化一个策略, 即是给定一个 $\pi_0$ 初始策略这里我们假设是等概率随机策略(<em>the equiprobable random policy</em>).</p>
+<blockquote>
+<p>等概率随机策略的意思是, 在所有状态下, 所有行动概率相同</p>
+</blockquote>
+<h4 id="状态-行为价值"><a href="#状态-行为价值" class="headerlink" title="状态-行为价值"></a>状态-行为价值</h4><p>初始等概率随机策略 $\pi_0$<br>$$<br>\pi = \begin{bmatrix}<br>(s_0, a_0) &amp; (s_0,a_1) &amp; (s_0,a_2) &amp; …\<br>(s_1, a_0) &amp; (s_1,a_1) &amp; (s_1,a_2) &amp; …\<br>(s_i, a_j) &amp; … &amp; … &amp; …\<br>\end{bmatrix} \<br>$$<br>有了初始策略, 我们就可以开始计算此策略下的状态-行为价值, 基于状态-行为价值公式, 我们计算所有的状态下的所有行为<br>$$<br>q(s_t,a_t)=\sum_{s+1}p(s_{t+1}|s_t,a_t)[R_t+\lambda v(s_{t+1})]<br>$$<br>其中 $v(s_{t+1})$ 是前面提到的状态价值公式 $(8)$,<br>$$<br>v_\pi(s_t)=\sum_{a}\pi(a|s_t)\sum_{s_{t+1}}p(s_{t+1}|s_t, a)[R_t+\lambda v_{\pi}(s_{t+1})]<br>$$<br>在完成这步计算之后, 我们就能获得当前策略中每个状态-行为的价值.</p>
+<blockquote>
+<p>在公式$(13)$ 中, 这个递归式子之所以能够收敛是因为 $0&lt;\lambda&lt;1$ 的缘故, 但不仅仅有这一种方法, 还有一种办法是可以限制 $T \in \mathbb{R}$ , 也就是说计算到一定的回合之后停止计算, 即是求 $T$ 回合内长期回报.</p>
+</blockquote>
+<h4 id="更新策略"><a href="#更新策略" class="headerlink" title="更新策略"></a>更新策略</h4><p>在完成计算之后我们根据计算出来的状态-行为价值 $q(s_t,a_t)$ 对策略进行更新<br>$$<br>\pi(s)=argmax_aq(s,a)<br>$$<br>更新的结果, 既是在公式$(11)$的矩阵中, 移除状态-行为价值低的项目, 仅保留最好的那一组, 接下来的问题就是, 我们有没有办法证明, 通过这种办法更新得到的策略是最优策略.</p>
+<h5 id="策略提升证明"><a href="#策略提升证明" class="headerlink" title="策略提升证明"></a>策略提升证明</h5><p>基于现有策略 $\pi$ , 我们能够计算出策略价值 $v(\pi)$ , 假设这个时候我们发现了一个 $\hat{s}$ 和 a, 并使<br>$$<br>q(\hat{s},a) \geq q(\hat{s},\pi(\hat{s})) = \<br>p(\hat{s}|s_t,a)[R_t+\lambda v_{\pi^+}(\hat{s})] \geq p(\hat{s}|s_t,a)[R_t+\lambda v_{\pi}(\hat{s})]<br>$$<br>我们就能够对策略 $\pi$ 中的 $\hat{s},a$ 进行更新, 得到一个新的策略 $\pi^+$ 这个策略除了在状态 $\hat{s}$ 和原来不同, 其他都一样,</p>
+<p>那么我们展开式子, 在 $v_{\pi^+}$ 将状态 $\hat{s}$ 和其他状态区分开<br>$$<br>v_{\pi^+}=\sum_a\pi^+(a|s_t)\sum_{s_t+1}p(s_{t+1}|s_t,a)[R_t+\lambda v_{\pi^+}(s_{t+1})]\<br>=\sum_a\pi(a|s_t)[\sum_{s_{t+1}\neq\hat{s}}p(s_{t+1}|s_t,a)[R_t+\lambda v_{\pi^+}(s_{t+1})]+p(\hat{s}|s_t,a)[R_t+\lambda v_{\pi^+}(\hat{s})]]<br>$$<br>因为策略 $\pi$ 和策略 $\pi^+$ 的区别仅是在状态 $\hat{s}$ 时不同. 公式中 $p(\hat{s}|s_t,a)[R_t+\lambda v_{\pi}(\hat{s})]$ 的部分即是将 $\sum_{s_t+1}p(s_{t+1}|s_t,a)[R_t+\lambda v_{\pi^+}(s_{t+1})]$ 中状态 $\hat{s}$ 的部分提取出来.</p>
+<p>同样的, 我们在 $v_{\pi}$ 将状态 $\hat{s}$ 和其他状态区分开<br>$$<br>v_{\pi}=\sum_a\pi(a|s_t)\sum_{s_t+1}p(s_{t+1}|s_t,a)[R_t+\lambda v_{\pi}(s_{t+1})]\<br>=\sum_a\pi(a|s_t)[\sum_{s_{t+1}\neq\hat{s}}p(s_{t+1}|s_t,a)[R_t+\lambda v_{\pi}(s_{t+1})]+p(\hat{s}|s_t,a)[R_t+\lambda v_{\pi}(\hat{s})]]<br>$$<br>对比公式$(16)$以及公式$(17)$我们能够发现他们其中的差别, 在非 $\hat{s}$ 状态下,<br>$$<br>\sum_{s_{t+1}\neq\hat{s}}p(s_{t+1}|s_t,a)[R_t+\lambda v_{\pi}(s_{t+1})] = \sum_{s_{t+1}\neq\hat{s}}p(s_{t+1}|s_t,a)[R_t+\lambda v_{\pi^+}(s_{t+1})]<br>$$<br>区别仅仅在 $\hat{s}$ 状态时的选择不同, 因此基于公式 $(15)$ 我们能够得出结论 $v_{\pi^+} \geq v_{\pi}$ , 在这个前提下, 我们就可以通过迭代的方式不断的基于状态行为价值公式, 来优化策略 $\pi$ 使其达到最优.</p>
+<h3 id="价值迭代-Value-Iteration"><a href="#价值迭代-Value-Iteration" class="headerlink" title="价值迭代 Value Iteration"></a>价值迭代 Value Iteration</h3><p>在之前章节中, 我们提到了如何进行评估策略价值, 其过程如下:<br>$$<br>v_\pi(s_t)=\sum_{a}\pi(a|s_t)\sum_{s_{t+1}}p(s_{t+1}|s_t, a)[R_t+\lambda v_{\pi}(s_{t+1})]\<br>q(s_t,a_t)=\sum_{s+1}p(s_{t+1}|s_t,a_t)[R_t+\lambda v(s_{t+1})]\<br>\pi(s)=argmax_aq(s,a)<br>$$<br>再次简述下学习过程:</p>
+<ol>
+<li>初始化等概率策略 $\pi$ (也就是在所有 $s$ 下选择行为 $a$ 的概率相等)</li>
+<li>基于初始化的策略 $\pi$ 计算当前策略价值(对状态-行为进行全概率展开)</li>
+<li>计算基于当前策略 $\pi$ 状态-行为价值, 改进策略 $\pi(s,a)$, 并输出改进策略 $\pi^+$</li>
+<li>重复以上过程2,3, 直到策略收敛(策略价值不再显著提升)</li>
+</ol>
+<p>在实际的计算中, 其实大部分计算都花费在策略评估上, 接下来看我们要怎么进行优化.</p>
+<p>通过合并公式$(19)$的后两个式子, 我们可以得到<br>$$<br>\pi(s)=argmax_a\sum_{s+1}p(s_{t+1}|s_t,a_t)[R_t+\lambda v(s_{t+1})]<br>$$<br> 而对于每个不同的状态, 实际上都有一个最优行为, 这个行为不会比其他的行为差<br>$$<br>v(s) = max_a q(s,a)<br>$$<br>因此我们可以认为, 每一个不同状态的价值, 既是在这个状态下具备最高价值的状态-行为, 因此我们可以基于以下流程来进行价值迭代.<br>$$<br>v(s_t) = max_a\sum_{s_{t+1}}p(s_{t+1}|s,a)[r(s,a,s_{t+1})+\lambda v(s_{t+1})]\<br>\pi(s)=argmax_aq(s,a)<br>$$<br>这种方法将策略的改进视作值函数的改进, 学习过程如下:</p>
+<ol>
+<li>初始化等概率策略 $\pi$ 并将所有 $v(s)$ 视作 0</li>
+<li>基于当前状态价值, 计算所有状态-行为价值并取结果有最大价值的行为作为新的状态价值. 更新当前状态价值</li>
+<li>重复过程2, 知道所有状态价值收敛(不再有显著变化)</li>
+<li>基于每个状态价值所对应的 $a$, 更新并输出策略.</li>
+</ol>
+<h2 id="蒙特卡洛强化学习"><a href="#蒙特卡洛强化学习" class="headerlink" title="蒙特卡洛强化学习"></a>蒙特卡洛强化学习</h2><p>在之前的章节中, 由于环境和奖励已知, 我们可以采用全概率展开的方式进行计算, 但是在现实生活中, 我们绝大多数情况是不能获得全部的环境和状态信息的也就是不能像之前那样, 对整体状态空间做全概率展开. 因此我们只能在这个位置的环境中进行多次尝试, 来观察这次尝试之后的奖励, 进行学习.</p>
+<h2 id="资料引用"><a href="#资料引用" class="headerlink" title="资料引用"></a>资料引用</h2><p>本文引用互联网上以下资料</p>
+<ol>
+<li><a href="https://en.wikipedia.org/wiki/Reinforcement_learning" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Reinforcement_learning</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Markov_decision_process" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Markov_decision_process</a></li>
+<li><a href="http://www.cnblogs.com/steven-yang/p/6493328.html" target="_blank" rel="noopener">http://www.cnblogs.com/steven-yang/p/6493328.html</a></li>
+<li><a href="http://www.infoq.com/cn/articles/painless-enhanced-learning-portal-part01" target="_blank" rel="noopener">http://www.infoq.com/cn/articles/painless-enhanced-learning-portal-part01</a></li>
+</ol>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Machine-Learning-Reinforcement-Learning/" rel="tag"># Machine Learning, Reinforcement Learning</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/03/20/基于Hexo的使用备忘/" rel="next" title="Hexo 的使用备忘">
+                <i class="fa fa-chevron-left"></i> Hexo 的使用备忘
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/03/26/spark_basic_concept/" rel="prev" title="Spark 基础概念">
+                Spark 基础概念 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">龚俊衡 Gong Junheng</p>
+              <div class="site-description motion-element" itemprop="description">junheng | scala | java | akka | architect | machine learning | AI</div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">3</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#目录"><span class="nav-number">1.</span> <span class="nav-text">目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">2.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#有模型的学习"><span class="nav-number">3.</span> <span class="nav-text">有模型的学习</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#策略-环境和奖励"><span class="nav-number">3.1.</span> <span class="nav-text">策略,环境和奖励</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#策略"><span class="nav-number">3.1.1.</span> <span class="nav-text">策略</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#环境"><span class="nav-number">3.1.2.</span> <span class="nav-text">环境</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#奖励"><span class="nav-number">3.1.3.</span> <span class="nav-text">奖励</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#状态价值函数"><span class="nav-number">3.1.3.1.</span> <span class="nav-text">状态价值函数</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#优化目标"><span class="nav-number">3.1.4.</span> <span class="nav-text">优化目标</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#策略迭代-Policy-Iteration"><span class="nav-number">3.2.</span> <span class="nav-text">策略迭代 Policy Iteration</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#状态-行为价值"><span class="nav-number">3.2.1.</span> <span class="nav-text">状态-行为价值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#更新策略"><span class="nav-number">3.2.2.</span> <span class="nav-text">更新策略</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#策略提升证明"><span class="nav-number">3.2.2.1.</span> <span class="nav-text">策略提升证明</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#价值迭代-Value-Iteration"><span class="nav-number">3.3.</span> <span class="nav-text">价值迭代 Value Iteration</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#蒙特卡洛强化学习"><span class="nav-number">4.</span> <span class="nav-text">蒙特卡洛强化学习</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#资料引用"><span class="nav-number">5.</span> <span class="nav-text">资料引用</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">龚俊衡 Gong Junheng</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.1"></script>
+
+  <script src="/js/src/motion.js?v=7.0.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=7.0.1"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
+
+  
+
+
+  <script src="/js/src/next-boot.js?v=7.0.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+  
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') { next = next.nextSibling }
+        if (next && next.nodeName.toLowerCase() === 'br') { next.parentNode.removeChild(next) }
+      }
+    });
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      document.getElementById(all[i].inputID + '-Frame').parentNode.className += ' has-jax';
+    }
+  });
+</script>
+<script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- Begin: Injected MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config("");
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src>
+</script>
+<!-- End: Injected MathJax -->
+<!-- hexo-inject:end -->
+
+    
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
