@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>分布式集群 - 创建一个索引 - Lunaroid</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+<meta name="description" content="junheng | scala | java | akka | architect | game">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+
+</head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            分布式集群 - 创建一个索引
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-12-25T08:42:53.000Z" itemprop="datePublished">12月 25 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            6 分钟 read (About 914 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <p>##Add an Index</p>
+<p>要向 Elasticsearch 添加数据, 我们就需要一个索引 – 一个存放相关数据的地方, 事实上索引只是一个<em>逻辑名字空间</em>指向一个或者多个物理分片<br><a id="more"></a></p>
+<p>分片是一个底层工作段元, 它支持有索引中数据的一部分, 在 <strong>inside-a-shard</strong> 这个小节中我们会解释其工作细节, 但是现在我们只需要知道一个分片只是一个单一的 Lucene 实例并且它自身也是一个完整的搜索引擎就可以了, 我们的文档存储和索引在这些分片中, 但是我们的应用程序不会直接和他们通讯, 对于应用来说仅仅操作索引本身就足够了.</p>
+<p>分片是 Elasticsearch 将数据分布到整个集群的手段, 可以将分片们想象成数据的容器, 文档被存储在分片中, 分片们被分配到你集群的节点中, 当你集群扩展或者收缩时, Elasticsearch 将会自动在节点之间调整这些分片的位置来位置集群的均衡性.</p>
+<p>一个分片可以是主分片或者复制分片, 在你索引中所有的文档都会属于某个主分片, 所以你选择的主分片的数量就决定了, 你这个索引最多能存放多少数据.</p>
+<blockquote>
+<p>虽然主分片数据可以存放的数据没有理论上的限制, 但是依然有一些实际的限制, 最大分片大小完全取决于你的使用场景: 你所拥有的硬件资源, 文档的数量和复杂度, 如何索引和查询你的文档和你期待的返回时间</p>
+</blockquote>
+<p>复制分片仅仅只是朱分片的副本, 复制集用于提供冗余的备份以避免硬件损坏和处理读取请求比如搜索或者获取文档.</p>
+<p>索引中主分片的数量是在索引创建时就确定了的, 但是复制分片的数量可以在任何时候被改变.</p>
+<p>让我们在我们的单节点空集群中创建一个名为 <code>blogs</code> 的索引, 默认情况下, 索引将会被分配5个主分片, 但我们这里仅仅是一个实例, 我们将会只分配三个主分片和一个复制分片(对于每个主分片一个复制分片, 这里复制分片总数量为3)</p>
+<pre><code>PUT /blogs
+</code></pre><pre><code class="json">{
+   &quot;settings&quot; : {
+      &quot;number_of_shards&quot; : 3,
+      &quot;number_of_replicas&quot; : 1
+   }
+}
+</code></pre>
+<p>我们集群现在由一个单节点和一个索引构成, 所有三个朱分片都被分配在节点 1上面</p>
+<p><img src="http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/images/elas_0202.png" alt="image"></p>
+<p>如果我们现在检查<code>cluster-health</code>, 我们将会看到:</p>
+<pre><code class="json">{
+   &quot;cluster_name&quot;:          &quot;elasticsearch&quot;,
+   &quot;status&quot;:                &quot;yellow&quot;, (1)
+   &quot;timed_out&quot;:             false,
+   &quot;number_of_nodes&quot;:       1,
+   &quot;number_of_data_nodes&quot;:  1,
+   &quot;active_primary_shards&quot;: 3,
+   &quot;active_shards&quot;:         3,
+   &quot;relocating_shards&quot;:     0,
+   &quot;initializing_shards&quot;:   0,
+   &quot;unassigned_shards&quot;:     3 (2)
+}
+</code></pre>
+<ol>
+<li><p>集群状态为 <code>yellow</code></p>
+</li>
+<li><p>我们三个副本分片没有被分配到一个节点上</p>
+</li>
+</ol>
+<p>一个集群健康度为<code>yellow</code>意味着所有的主分片已经启动并运行(集群已经可以接受任何请求并成功返回)但是不是所有的复制分片可用, 事实上, 我们的三个复制分片现在是<code>unassigned</code> – 他们并没有被分配到任何一个节点上, 这是因为将复制的数据放到同样的节点上没有任何实际意义, 如果这个节点出问题, 我们还是会丢失所有数据</p>
+<p>现在, 我们的集群已经完全可以使用, 但是存在丢失数据的风险.</p>
+
+    
+    </div>
+    
+    <div class="columns is-variable is-1 is-multiline is-mobile">
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/ElasticSearch/">#ElasticSearch</a></span>
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/EDG/">#EDG</a></span>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2014/12/25/EDG-Distributed-Cluster-Add-failover/">分布式集群 - 增加失效备援</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2014/12/25/EDG-Distributed-Cluster-Cluster-health/">分布式集群 - 集群健康度</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2019 Junheng Gong&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> & <a href="http://github.com/ppoffice/hexo-theme-minos">Minos</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+
+<script src="/js/script.js"></script>
+
+    
+</body>
+</html>

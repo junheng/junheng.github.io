@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>分布式集群 - 空集群 - Lunaroid</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+<meta name="description" content="junheng | scala | java | akka | architect | game">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+
+</head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            分布式集群 - 空集群
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-12-25T07:22:59.000Z" itemprop="datePublished">12月 25 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            3 分钟 read (About 402 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <p>##An Empty Cluster<br>如果我们启动了一个节点并且没有任何数据和索引, 我们的集群看起来就像包含了一个空节点的集群.<br><a id="more"></a></p>
+<p><img src="http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/images/elas_0201.png" alt="image"></p>
+<p>一个节点运行了 Elasticsearch 实例, 当一个集群具备一个或者多个节点使用同一个<em>cluster.name</em>他们就会共享他们的数据和负载, 每当一个节点在集群中被加入或者被移除, 集群会调整自身使得数据重新被平均分配.</p>
+<p>集群中的一个节点将会被选举成为主控节点, 这个节点将会负责管理集群层面的变动, 比如增加或者删除索引, 添加或者移除节点, 主控节点和文档层面的改变或者搜索不会产生关系, 这使得主控节点不会成为数据传输的瓶颈, 任何节点都可以成为主控节点, 我们的示例集群中只有一个节点, 所以理所当然它承担了主控节点的角色.</p>
+<p>作为用户, 我们可以和集群中任意节点进行通讯, 包括主控节点, 每个节点都知道所有文档的具体为止, 并且可以将我们的请求重定向到那个包含我们感兴趣数据的节点, 无论我们请求的那个节点结果都将由这个节点返回, 这个节点自己会控制整个请求过程, 这一切都由 Elasticsearch 管理并对客户端透明.</p>
+
+    
+    </div>
+    
+    <div class="columns is-variable is-1 is-multiline is-mobile">
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/ElasticSearch/">#ElasticSearch</a></span>
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/EDG/">#EDG</a></span>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2014/12/25/EDG-Distributed-Cluster-Cluster-health/">分布式集群 - 集群健康度</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2014/12/25/elasticsearch-custom-scoring-notice/">Elastic Search 自定义公式</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2019 Junheng Gong&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> & <a href="http://github.com/ppoffice/hexo-theme-minos">Minos</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+
+<script src="/js/script.js"></script>
+
+    
+</body>
+</html>

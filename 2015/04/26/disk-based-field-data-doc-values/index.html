@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>使用Doc Values降低heap开销 - Lunaroid</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+<meta name="description" content="junheng | scala | java | akka | architect | game">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+
+</head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            使用Doc Values降低heap开销
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2015-04-26T06:33:07.000Z" itemprop="datePublished">4月 26 2015</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            7 分钟 read (About 999 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <p>Elasticsearch 不仅仅是一个全文搜索引擎, 而且很多用户根本不把elasticsearch作为全文搜索引擎来使用而是用于facet(aggs)分析, 这是完全没有问题的, 但是你可能已经知道, 对一个字段的facet和sorting需要将field values全部装在到内存中称之为doc values的数据结构, 在通常的情况下这些field data会使用数十G内存, 现在内存成本不是很高, 通常来说在有足够的内存的情况下这不会引发什么问题, 但是在jvm层面上会引发一些问题, 一个主要的垃圾收集行为在一个具备数十G heap的java线程中会引发数秒的停顿, 这样会导致应用程序在这次查询非常的缓慢, 优化jvm可以缓解这个问题, 但是更好的办法是让这些field不再存储在heap中.</p>
+<blockquote>
+<p>使用doc values通常会导致查询和聚合性能下降10%-25%, 这取决于操作系统文件缓存和磁盘速度, 由于不同的硬件条件, 建议在使用doc values先对现有数据进行充分的测试.</p>
+</blockquote>
+<a id="more"></a>
+<p>###使用Doc Values<br>Doc Values 功能是在elasticsearch 1.0 之后引入的, 详细的信息可以查询当时的release note</p>
+<p>Doc Values 是Lucene 4.x 的新功能, 它允许你将field values以列模式存储在硬盘, 有效的利用文件系统缓存来完成自定义评分, 排序, 和facet(aggs), 基本上field data一致. 要使用doc values你必须在一开始创建这个字段映射的时候就将其指定为doc values, 无论是针对inverted还是uninverted索引, 这种新的实现对比传统的field data具备一些优势.</p>
+<ol>
+<li>jvm heap 缓存被基于操作系统级别的文件系统缓存代替, 避免 GC带来的时间开销和cpu开销</li>
+<li>doc values将在索引的时候被计算, 所以refresh将会更快</li>
+<li>存储到磁盘上的doc values将会被更有效的压缩</li>
+</ol>
+<p>从另一方面来说, doc values会导致索引文件变得更加大.</p>
+<p>###什么时候应该使用Doc Values<br>Doc Values 在大部分 uninverted 索引字段的情况下可以代替 field data, 对于一些特定的场景更加适合.</p>
+<ol>
+<li>有限的硬件, heap中的field data结构会消耗掉大量的内存, 而节点的内存并不是无限制增加的, 但是数据却会不断的增加.</li>
+<li>周期运行的非实时性任务, 有些场景我们需要定期的运行一些聚合类查询来进行统计或达到一些其他的目的, 在这些情况下查询的延迟和吞吐量并不是最重要的, 把相关字段作为field data存储在内存中不是特别有意义, 因为他们并不是会频繁访问的.</li>
+<li>内存管理, 将elasitcsearch消耗的大部分内存转移到磁盘可以让elasticsearch以一个很小的heap来运行, 让文件系统和操作系统来管理内存我们不会遇到任何内存溢出, 内存不足的问题, 同时也没有GC停顿的问题.</li>
+</ol>
+<blockquote>
+<p>通常基于一段文本的分词索引称之为inverted索引, 而not_analysed的字符串和数字为uninverted索引, 具体的实现细节和区别, 请参考官方文档.</p>
+</blockquote>
+<p>###如何打开Doc Values<br>Doc Values是一个索引时的选择, 所以他们需要在创建mapping的时候就被选择, 这里有个例子.</p>
+<pre><code class="json">&quot;my_field&quot;: {
+  &quot;type&quot;: &quot;string&quot;,
+  &quot;index&quot;: &quot;no&quot;,
+  &quot;fielddata&quot;: {
+    &quot;format&quot;: &quot;doc_values&quot;
+  }
+}
+</code></pre>
+<p>就目前而言, doc values支持的non-analysed的string字段和所有的数字字段(byte, short, integer, long, float, date, double), 如你所见, 要使用doc values 不一定需要进行索引, 并且一旦当doc values被打开之后所有的排序或者聚合操作都将使用doc values.</p>
+
+    
+    </div>
+    
+    <div class="columns is-variable is-1 is-multiline is-mobile">
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/Elasticsearch/">#Elasticsearch</a></span>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2015/04/27/elasticsearch-tips/">Elasticsearch Tips</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2015/02/24/mac-os-tips/">MAC OS X 小技巧</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2019 Junheng Gong&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> & <a href="http://github.com/ppoffice/hexo-theme-minos">Minos</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+
+<script src="/js/script.js"></script>
+
+    
+</body>
+</html>

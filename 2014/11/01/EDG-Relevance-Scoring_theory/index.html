@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>相关度 - 相关度打分理论 - Lunaroid</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+<meta name="description" content="junheng | scala | java | akka | architect | game">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+
+</head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            相关度 - 相关度打分理论
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-10-31T23:50:23.000Z" itemprop="datePublished">11月 1 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            15 分钟 read (About 2282 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <h2 id="Theory-behind-relevance-scoring"><a href="#Theory-behind-relevance-scoring" class="headerlink" title="Theory behind relevance scoring"></a>Theory behind relevance scoring</h2><p>Lucene(包括 Elasticsearch) 使用 Boolean 模型来寻找匹配的文档, 并且使用名为Practical Scoring Function公式来计算相关度, 这个公式借用片段频率(Term Frequency)/逆文本频率指数(Inverse Document Frequency)和向量空间模型(Vector Space Model)的概念但是增加了更多新的功能比如协调因子(coordination factor), 字段长度统一化(field length normalization)和片段(term)增强( boosting).<br>不要被吓住了, 这些概念并非像他们名字那样复杂, 虽然我们在这一节中会提到算法, 公式和数学模型, 但是我们会尽可能的”说人话”, 了解这些算法本身相对于了解这些因子对于结果不是那么重要.<br><a id="more"></a></p>
+<h2 id="布尔模型-Boolean-Model"><a href="#布尔模型-Boolean-Model" class="headerlink" title="布尔模型( Boolean Model)"></a>布尔模型( Boolean Model)</h2><p>布尔模型在查询中简单的通过 AND,OR和 NOT 这样的条件表达式来寻找所有匹配的文档, 例如一个查询:</p>
+<pre><code>full AND text AND search AND  (elasticsearch OR lucene) 
+</code></pre><p>搜索到的文档必须包含 full, text, search, elasticsearch 或者 lucene 其中一个这些片段, 这个查询处理起来简单而快速, 用于在查询中快速排除任何不可能匹配的文档.</p>
+<h2 id="片段频率-Term-Frequency-逆文本频率指数-Inverse-Document-Frequency"><a href="#片段频率-Term-Frequency-逆文本频率指数-Inverse-Document-Frequency" class="headerlink" title="片段频率(Term Frequency)/逆文本频率指数(Inverse Document Frequency)"></a>片段频率(Term Frequency)/逆文本频率指数(Inverse Document Frequency)</h2><p>一旦我们有了一个匹配的列表, 他们需要按照相关度进行排序, 不是所有文档都会包含所有的片段, 并且一些片段要比其他的片段重要一些, 文档的整体相关度分数取决于(部分)每个出现在文档中用以查询的片段的权重.</p>
+<p>一个片段的权重取决于三个因子, 我们已经在之前章节中介绍过了, 公式包含了所有相关的因素, 但是你并没必要记住他们</p>
+<h2 id="片段频率"><a href="#片段频率" class="headerlink" title="片段频率"></a>片段频率</h2><p>一个片段在这个文档中出现了多少次? 越是出现的频繁, 那么权重越高, 一个字段提到了五次相同的片段就比这个字段只提到一次相关度更高, 我们使用如下公式来计算片段:</p>
+<pre><code>tf(t in d) = √frequency 
+</code></pre><p>针对文档中的片段频率( tf) 通过对文档中片段出现次数开根号获得</p>
+<p>如果你不关心一个字段中片段出现的频率, 比如你只关心这个片段是否在这个文档中出现过, 你可以在字段映射的时候屏蔽掉片段频率计算:</p>
+<p>PUT /my_index</p>
+<pre><code class="json">{
+  &quot;mappings&quot;: {
+    &quot;doc&quot;: {
+      &quot;properties&quot;: {
+        &quot;text&quot;: {
+          &quot;type&quot;:          &quot;string&quot;,
+          &quot;index_options&quot;: &quot;docs&quot; //(1)
+        }
+      }
+    }
+  }
+}
+</code></pre>
+<p>将 index_option 设置成 docs 将屏蔽片段频率和片段位置, 党一个字段使用这个映射将不会去计算片段出现了多少次, 并且不能在 phrase 或者 proximity 查询中使用, 用于精确匹配的 not_analyzed 字符串字段默认使用这个设置<br>逆文本频率指数</p>
+<p>在索引集合中这个片段在所有文档中有多常见, 越是常见, 权重越低, 常见的片段由于他们出现在大量文档中因此只能提供少量的相关度, 然而不常见的片段比如 elastic 或者 hippopotamus 这样的单词帮助我们聚焦于真正感兴趣的文档, 逆文本频率指数通过以下公式计算:</p>
+<p>idf(t) = 1 + log ( numDocs / (docFreq + 1))<br>针对碎片的逆文本频率指数使用如下算法: 索引中文档总数除以包含这个片段文档数量(加以避免除0) 然后取对数 加上1</p>
+<h2 id="字段长度基准"><a href="#字段长度基准" class="headerlink" title="字段长度基准"></a>字段长度基准</h2><p>这个字段有多长, 越短的字段越是具备高权重, 如果一个片段出现在一个短的字段中, 比如标题字段, 片段更可能出现在一个较大的内容字段中比如”关于”, 字段长度基准使用下面的公式进行计算:</p>
+<pre><code>norm(d) = 1 / √numTerms
+</code></pre><p>字段长度基准等于1除以这个字段中片段总数开平方</p>
+<p>虽然字段长度基准对于全文搜索非常重要, 但是有可能很多其他类型的字段不需要它, 字段长度基准在索引的时候对于每个字符串字段占用大约一个字节, 无论这个文档包含这个字段与否, 将字符串字段设置为 not_analyzed 将默认的屏蔽掉字段长度基准, 但是你也可以使用以下映射配置来屏蔽一个 analyzed 字段:</p>
+<p>PUT /my_index</p>
+<pre><code class="json">{
+  &quot;mappings&quot;: {
+    &quot;doc&quot;: {
+      &quot;properties&quot;: {
+        &quot;text&quot;: {
+          &quot;type&quot;: &quot;string&quot;,
+          &quot;norms&quot;: { &quot;enabled&quot;: false } (1)
+        }
+      }
+    }
+  }
+}
+</code></pre>
+<p>这个字段将不会将字段长度基准作为考虑范围, 一个长的字段或者一个短的字段在计算分数时, 将视为同样的长度.</p>
+<p>在一些场景下, 比如日志, 长度基准基本没有作用, 你所考虑的仅仅是这个字段是否包含一些错误代码或者浏览器识别信息, 字段的长度对预期结果没任何影响, 关闭长度基准可以稍微节省一些内存.</p>
+<h2 id="把他们放到一起"><a href="#把他们放到一起" class="headerlink" title="把他们放到一起"></a>把他们放到一起</h2><p>这三个因素, 片段频率, 逆文本频率指数, 字段长度基准 都在索引时计算并存储, 同样的, 他们被用于计算单个片段在特定文档中的权重.</p>
+<blockquote>
+<p>每当我们将上面的公式和文档放在一起说, 事实上我们说的是某个文档中的字段, 每个字段都有个逆索引因此对于 片段频率和逆文本频率指数来说, 字段的值就是正哥文档的值<br>当我们运行一个简单的片段查询时, 我们可以将explain 设置为 true, 你将看到涉及分数计算的因子就是我们之前提到的那些:</p>
+</blockquote>
+<p>PUT /my_index/doc/1</p>
+<pre><code class="json">{ &quot;text&quot; : &quot;quick brown fox&quot; }
+</code></pre>
+<p>GET /my_index/doc/_search?explain</p>
+<pre><code class="json">{
+  &quot;query&quot;: {
+    &quot;term&quot;: {
+      &quot;text&quot;: &quot;fox&quot;
+    }
+  }
+}
+</code></pre>
+<p>上面的请求解释如下(为了看起来容易点, 我们简化了下结果):</p>
+<pre><code>weight(text:fox in 0) [PerFieldSimilarity]:  0.15342641 //(1)
+result of:
+    fieldWeight in 0                         0.15342641
+    product of:
+        tf(freq=1.0), with freq of 1:        1.0 //(2)
+        idf(docFreq=1, maxDocs=1):           0.30685282 //(3)
+        fieldNorm(doc=0):                    0.5 (4)
+</code></pre><ol>
+<li>内部 ID 为0的文档中, 字段 text 在查询片段为fox 的时候的最终得分为0.15342641</li>
+<li>片段fox在 text 中只出现了一次, 因此 TF 结果为1</li>
+<li>逆文本频率fox这个片段在所有文档中出现过一次, 因此 IDF结果为 0.30685282</li>
+<li>当然一个查询通常不只是由一个片段组成, 所以我们需要找到一个办法来合并多个片段的结果, 因此我们引入空间向量模型(VSM)</li>
+</ol>
+<h2 id="空间向量模型"><a href="#空间向量模型" class="headerlink" title="空间向量模型"></a>空间向量模型</h2><p>空间向量模型提供了在多片段查询的情况下给了我们一个途径来对比文档的手段, 结果是一个能体现出文档相关度的分数, 为了做到这一点, 通过使用向量来表现文档和查询.</p>
+<p>一个向量看起来就像一个包含数字的一位数组, 例如:</p>
+<p>[1,2,5,22,3,8]</p>
+<p>在空间向量模型中, 想两种每个数字都代表一个片段的权重, 通过 TF/IDF 计算得出.</p>
+<blockquote>
+<p>虽然 对于空间向量模型TF/IDF 是计算片段权重的的默认方法, 但不是唯一的方法, 其他的一些模型例如 Elasticsearch 支持的 Okapi-BM25同样也可以做到相同的事情. TF/IDF 之所以成为默认的手段, 因为他足够简单, 高效的算法能够提供更高的查询速度并能够降低测试时间.<br>想想下, 如果我们查询” happy hippopotamus”, 一个常见的词汇比如 happy 只拥有低权重, 让我们假设 happy 的权重为2, 而 hippopotamus 的权重为5, 让我把他们设为一个简单的二维向量[2,5] 在二维坐标系中表现起来就是一根线, 起点为0,0 而终点为2,5</p>
+</blockquote>
+<p>现在, 假设我们有三个文档,</p>
+<ol>
+<li><p>“I am happy in summer”</p>
+</li>
+<li><p>“After Christmas I’m a hippopotamus”</p>
+</li>
+<li><p>“The happy hippopotamus helped Harry”</p>
+</li>
+</ol>
+<p>我们可以为每个文档依据查询的片段权重创建一个简单的向量. 然后把他们放到同一张图上去比较.</p>
+<ol>
+<li>[2,0]</li>
+<li>[0,5]</li>
+<li>[2,5]</li>
+</ol>
+<p>将查询和文档向量放到一个图上就便得非常容易进行比较, 通过测量查询向量和文档向量之间的角度就有能够给每个文档计算出相关度的值, 文档1的角度和查询相比相差太大, 文档2稍微接近一点, 而文档3 则是完美匹配.</p>
+<blockquote>
+<p>事实上, 二维向量(根据两个片段进行查询), 可以很简单的用图来表示, 幸运的是线性代数, 用来处理向量的数学分值, 提供了工具让我们来对比多维向量, 这意味着我们可以可以处理多片段的查询.</p>
+</blockquote>
+<p>你可以去看看如何使用余弦相似度(Cosine Similarity)<a href="http://en.wikipedia.org/wiki/Cosine_similarity" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Cosine_similarity</a></p>
+<p>现在我们已经讨论完毕关于评分的理论基础, 我们可以去看看 Lucene 是如何实现评分的了.”</p>
+
+    
+    </div>
+    
+    <div class="columns is-variable is-1 is-multiline is-mobile">
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/ElasticSearch/">#ElasticSearch</a></span>
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/EDG/">#EDG</a></span>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2014/11/12/EDG-Relevance-Practical_scoring/">相关度 - Lucene 实质评分方法</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2014/10/12/EDG-Relevance-Intro/">相关度 - 简介</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2019 Junheng Gong&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> & <a href="http://github.com/ppoffice/hexo-theme-minos">Minos</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+
+<script src="/js/script.js"></script>
+
+    
+</body>
+</html>

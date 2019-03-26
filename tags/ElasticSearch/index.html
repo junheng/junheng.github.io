@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>Tag: ElasticSearch - Lunaroid</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+<meta name="description" content="junheng | scala | java | akka | architect | game">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+
+</head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section section-heading">
+    <div class="container">
+        <div class="content">
+            <h5>#ElasticSearch</h5>
+        </div>
+    </div>
+</section>
+<section class="section">
+    <div class="container">
+    
+        <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            <a href="/2014/12/25/EDG-Distributed-Cluster-Scale-horizontally/" itemprop="url">分布式集群 - 水平扩展</a>
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-12-25T10:09:23.000Z" itemprop="datePublished">12月 25 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            1 分钟 read (About 171 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <p>##Scale Horizontally</p>
+<p>What about scaling as the demand for our application grows? If we start a third node, our cluster reorganizes itself to look like A three-node cluster—shards have been reallocated to spread the load.</p>
+<p>A three-node cluster<br>Figure 1. A three-node cluster—shards have been reallocated to spread the load<br>One shard each from Node 1 and Node 2 have moved to the new Node 3, and we have two shards per node, instead of three. This means that the hardware resources (CPU, RAM, I/O) of each node are being shared among fewer shards, allowing each shard to perform better.</p>
+<p>A shard is a fully fledged search engine in its own right, and is capable of using all of the resources of a single node. With our total of six shards (three primaries and three replicas), our index is capable of scaling out to a maximum of six nodes, with one shard on each node and each shard having access to 100% of its node’s resources.</p>
+
+    
+    </div>
+    
+    
+</article>
+
+
+
+
+    
+        <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            <a href="/2014/12/25/EDG-Distributed-Cluster-Add-failover/" itemprop="url">分布式集群 - 增加失效备援</a>
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-12-25T08:57:20.000Z" itemprop="datePublished">12月 25 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            3 分钟 read (About 462 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <p>##Add Failover</p>
+<p>运行单节点意味着没有任何冗余, 幸运的是, 我们可以启动另一个节点来防止这种数据丢失<br></p>
+        <p class="article-more-link">
+            <a href="/2014/12/25/EDG-Distributed-Cluster-Add-failover/#more">Read More</a>
+        </p>
+    
+    </div>
+    
+    
+</article>
+
+
+
+
+    
+        <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            <a href="/2014/12/25/EDG-Distributed-Cluster-Add-an-index/" itemprop="url">分布式集群 - 创建一个索引</a>
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-12-25T08:42:53.000Z" itemprop="datePublished">12月 25 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            6 分钟 read (About 914 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <p>##Add an Index</p>
+<p>要向 Elasticsearch 添加数据, 我们就需要一个索引 – 一个存放相关数据的地方, 事实上索引只是一个<em>逻辑名字空间</em>指向一个或者多个物理分片<br></p>
+        <p class="article-more-link">
+            <a href="/2014/12/25/EDG-Distributed-Cluster-Add-an-index/#more">Read More</a>
+        </p>
+    
+    </div>
+    
+    
+</article>
+
+
+
+
+    
+        <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            <a href="/2014/12/25/EDG-Distributed-Cluster-Cluster-health/" itemprop="url">分布式集群 - 集群健康度</a>
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-12-25T08:18:45.000Z" itemprop="datePublished">12月 25 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            1 分钟 read (About 217 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <p>##Cluster health</p>
+<p>Elasticsearch 集群中有许多统计可以被监控, 但是最重要的一项则是集群健康度, 通过报告<code>status</code>为<code>green</code>,<code>yellow</code>,或者<code>red</code><br></p>
+        <p class="article-more-link">
+            <a href="/2014/12/25/EDG-Distributed-Cluster-Cluster-health/#more">Read More</a>
+        </p>
+    
+    </div>
+    
+    
+</article>
+
+
+
+
+    
+        <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            <a href="/2014/12/25/EDG-Distributed-Cluster-Empty-cluster/" itemprop="url">分布式集群 - 空集群</a>
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-12-25T07:22:59.000Z" itemprop="datePublished">12月 25 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            3 分钟 read (About 402 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <p>##An Empty Cluster<br>如果我们启动了一个节点并且没有任何数据和索引, 我们的集群看起来就像包含了一个空节点的集群.<br></p>
+        <p class="article-more-link">
+            <a href="/2014/12/25/EDG-Distributed-Cluster-Empty-cluster/#more">Read More</a>
+        </p>
+    
+    </div>
+    
+    
+</article>
+
+
+
+
+    
+        <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            <a href="/2014/12/25/elasticsearch-custom-scoring-notice/" itemprop="url">Elastic Search 自定义公式</a>
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-12-25T06:20:28.000Z" itemprop="datePublished">12月 25 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            2 分钟 read (About 354 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <p>由于最早编写公式时较为随意没有特别注意性能, 导致涉及大数据量时需要几秒甚至十几秒才能返回结果. 因此在编写 scoring function 有一些需要特别注意的方面(以 java 为例, 适用于 java native 以及 groovy):<br></p>
+        <p class="article-more-link">
+            <a href="/2014/12/25/elasticsearch-custom-scoring-notice/#more">Read More</a>
+        </p>
+    
+    </div>
+    
+    
+</article>
+
+
+
+
+    
+        <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            <a href="/2014/12/02/EDG-Distributed_Cluster-Intro/" itemprop="url">分布式集群 - 简介</a>
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-12-02T02:59:28.000Z" itemprop="datePublished">12月 2 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            3 分钟 read (About 452 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <p>##Life Inside a Cluster</p>
+<blockquote>
+<p>###追加章节<br>就像之前提到的, 这个追加章节(除此之外还有一些其他主题的追加章节)是关于 Elasticsearch 如何在分布式集群环境下工作. 在这个章节我们会解释一些常常会用到的术语比如, 集群, 节点和分片, 还有Elasticsearch 集群进行横向扩展和如何应对硬件故障的方法</p>
+</blockquote>
+<blockquote>
+<p>虽然这个章节是选读的 (因为你有可能在很长一段时间内使用 Elasticsearch 不需要关心分片, 副本和失效备援) 但是可以帮助你理解 Elasticsearch 内部是如何工作的, 你完全可以跳过此章节并在有需要的时候再回来读它</p>
+</blockquote>
+<p>Elasticsearch 被构建为高可用性并且可以依照你得需求进行扩展, 你可以通过购买更加强大的服务器(垂直扩展)或者购买更多的服务器(水平扩展)来进行扩展.</p>
+<p>虽然 Elasticsearch 可以从强大的硬件获得性能提升, 但是垂直扩展是有其限制的, 真正的扩展都是通过水平进行的, 增加更多节点到集群并且在这些节点之间分配负载和可靠性需求</p>
+<p>大部分数据库进行水平扩展的时候通常需要对应用程序进行大量修改, 与此相反, Elasticsearch 天生就是分布式的, 它知道如何管理多节点来提供扩展性和高可用性, 这意味着你得应用程序完全不需要关注这些.</p>
+<p>在这个章节, 我们将会告诉你如何根据你得需求配置集群, 节点和分片, 这样即使遇到硬件损坏, 你的数据也是安全的.</p>
+
+    
+    </div>
+    
+    
+</article>
+
+
+
+
+    
+        <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            <a href="/2014/11/24/EDG-Relevance-Query_time_boosting/" itemprop="url">相关度 - 查询时增强</a>
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-11-24T08:58:57.000Z" itemprop="datePublished">11月 24 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            5 分钟 read (About 721 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <h2 id="Query-time-boosting"><a href="#Query-time-boosting" class="headerlink" title="Query time boosting"></a>Query time boosting</h2><p>在这个章节我们将介绍在查询时如何使用 boost 参数来区分字段的重要性, 从而使搜索结果得到增强<br></p>
+        <p class="article-more-link">
+            <a href="/2014/11/24/EDG-Relevance-Query_time_boosting/#more">Read More</a>
+        </p>
+    
+    </div>
+    
+    
+</article>
+
+
+
+
+    
+        <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            <a href="/2014/11/12/EDG-Relevance-Practical_scoring/" itemprop="url">相关度 - Lucene 实质评分方法</a>
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-11-12T07:11:17.000Z" itemprop="datePublished">11月 12 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            12 分钟 read (About 1864 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <h2 id="Lucene’s-Practical-Scoring-Function"><a href="#Lucene’s-Practical-Scoring-Function" class="headerlink" title="Lucene’s Practical Scoring Function"></a>Lucene’s Practical Scoring Function</h2><p>对于多片段查询, Lucene 使用布尔模型, 片段频率/逆文本频率和空间向量模型并且将他们结合成一个单一有效的整体, 来收集匹配的文档和计算出他们的分数.<br></p>
+        <p class="article-more-link">
+            <a href="/2014/11/12/EDG-Relevance-Practical_scoring/#more">Read More</a>
+        </p>
+    
+    </div>
+    
+    
+</article>
+
+
+
+
+    
+        <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            <a href="/2014/11/01/EDG-Relevance-Scoring_theory/" itemprop="url">相关度 - 相关度打分理论</a>
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-10-31T23:50:23.000Z" itemprop="datePublished">11月 1 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            15 分钟 read (About 2282 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <h2 id="Theory-behind-relevance-scoring"><a href="#Theory-behind-relevance-scoring" class="headerlink" title="Theory behind relevance scoring"></a>Theory behind relevance scoring</h2><p>Lucene(包括 Elasticsearch) 使用 Boolean 模型来寻找匹配的文档, 并且使用名为Practical Scoring Function公式来计算相关度, 这个公式借用片段频率(Term Frequency)/逆文本频率指数(Inverse Document Frequency)和向量空间模型(Vector Space Model)的概念但是增加了更多新的功能比如协调因子(coordination factor), 字段长度统一化(field length normalization)和片段(term)增强( boosting).<br>不要被吓住了, 这些概念并非像他们名字那样复杂, 虽然我们在这一节中会提到算法, 公式和数学模型, 但是我们会尽可能的”说人话”, 了解这些算法本身相对于了解这些因子对于结果不是那么重要.<br></p>
+        <p class="article-more-link">
+            <a href="/2014/11/01/EDG-Relevance-Scoring_theory/#more">Read More</a>
+        </p>
+    
+    </div>
+    
+    
+</article>
+
+
+
+
+    
+    
+        
+<nav class="pagination is-centered is-rounded" role="navigation" aria-label="pagination">
+    <div class="pagination-previous is-invisible is-hidden-mobile">
+        <a href="/tags/ElasticSearch/page/0/">Prev</a>
+    </div>
+    <div class="pagination-next">
+        <a href="/tags/ElasticSearch/page/2/">Next</a>
+    </div>
+    <ul class="pagination-list is-hidden-mobile">
+        
+        <li><a class="pagination-link is-current" href="/tags/ElasticSearch/">1</a></li>
+        
+        <li><a class="pagination-link" href="/tags/ElasticSearch/page/2/">2</a></li>
+        
+    </ul>
+</nav>
+    
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2019 Junheng Gong&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> & <a href="http://github.com/ppoffice/hexo-theme-minos">Minos</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+
+<script src="/js/script.js"></script>
+
+    
+</body>
+</html>

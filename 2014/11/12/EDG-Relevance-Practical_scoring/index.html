@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>相关度 - Lucene 实质评分方法 - Lunaroid</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+<meta name="description" content="junheng | scala | java | akka | architect | game">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+
+</head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            相关度 - Lucene 实质评分方法
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-11-12T07:11:17.000Z" itemprop="datePublished">11月 12 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            12 分钟 read (About 1864 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <h2 id="Lucene’s-Practical-Scoring-Function"><a href="#Lucene’s-Practical-Scoring-Function" class="headerlink" title="Lucene’s Practical Scoring Function"></a>Lucene’s Practical Scoring Function</h2><p>对于多片段查询, Lucene 使用布尔模型, 片段频率/逆文本频率和空间向量模型并且将他们结合成一个单一有效的整体, 来收集匹配的文档和计算出他们的分数.<br><a id="more"></a></p>
+<p>一个多片段查询, 通常看起来是这样的:</p>
+<p>GET /my_index/doc/_search</p>
+<pre><code class="json">{
+  &quot;query&quot;: {
+    &quot;match&quot;: {
+      &quot;text&quot;: &quot;quick fox&quot;
+    }
+  }
+}
+</code></pre>
+<p>系统内部将把这次查询重写为:</p>
+<p>GET /my_index/doc/_search</p>
+<pre><code class="json">{
+  &quot;query&quot;: {
+    &quot;bool&quot;: {
+      &quot;should&quot;: [
+        {&quot;term&quot;: { &quot;text&quot;: &quot;quick&quot; }},
+        {&quot;term&quot;: { &quot;text&quot;: &quot;fox&quot;   }}
+      ]
+    }
+  }
+}
+</code></pre>
+<p>bool 查询实现了布尔模型, 并且在这个例子中将会找到包含 quick 或者 fox 中任何一个或两者都具备的文档.</p>
+<p>当一个文档一旦被匹配之后, Lucene使用一个叫做实质评分方法(Practical Scoring Function)将为这次查询计算这个文档的分数, 将每个片段的分数进行合并, 名字看起来有点吓人, 但是不用感到不安, 其中用到的大部分组件都是你已经知道了的, 它仅仅引入了很少一些新的元素, 我们接下来将会对其进行讨论.</p>
+<pre><code>score(q,d)  =  (1)
+        queryNorm(q)  (2)
+      · coord(q,d)    (3)
+      · ∑ (           (4)
+            tf(t in d)   (5)
+          · idf(t)²      (6)
+          · t.getBoost() (7)
+          · norm(t,d)    (8)
+        ) (t in q)    (4)
+</code></pre><ol>
+<li>score(q,d) 用于计算在使用查询 q 来查询文档 d 时候的相关度分数的函数</li>
+<li>queryNorm(q) 查询归一化因子(query normalization factor, 新概念)</li>
+<li>coord(q,d) 协调因子(coordination factor, 新概念)</li>
+<li>查询 q 中 每个片段 t 在匹配文档 d 的权重合计</li>
+<li>tf(t in d) 片段 t 在文档 d 中的片段频率</li>
+<li>idf(t) 片段 t 在整个索引中的逆文本频率</li>
+<li>t.getBoost() 片段 t 在此次查询中被使用的增强(boosting, 新概念)</li>
+<li>norm(t,d) 文档 d 的字段长度基准, 并且与索引时字段级别增强(index-time field-level boost, 新概念)合并计算</li>
+</ol>
+<p>你应该已经了解评分, 片段频率和逆文本频率, queryNorm, coord, t.getBoost 和 norm 则包含了新的概念.</p>
+<p>我们将会在这章晚一些的时候讨论更多关于查询时增强的细节, 但是让我们先搞定查询归一化, 协调化, 协调化和索引时字段级增强这些概念.</p>
+<h2 id="查询归一化因子-Query-normalization-factor"><a href="#查询归一化因子-Query-normalization-factor" class="headerlink" title="查询归一化因子(Query normalization factor)"></a>查询归一化因子(Query normalization factor)</h2><p>查询归一化因子尝试”归一”一个查询, 让其结果能够和其他结果进行比较</p>
+<blockquote>
+<p>虽然查询归一的目的是使不同的查询结果具有可比性, 但是通常不是很理想, 事实上, 相关性分数是目前能够使查询结果能够正确排序的手段, 你不应该视图比较不同查询所产生的相关性分数</p>
+</blockquote>
+<p>这个因子在查询开的时候被计算出来, 事实上计算过程依赖于所涉及的查询, 一个经典的实现如下:</p>
+<pre><code>queryNorm = 1 / √sumOfSquaredWeights (1)
+</code></pre><ol>
+<li>sumOfSquaredWeights 是将这次查询中所有片段的逆文本频率相加并进行平方</li>
+</ol>
+<blockquote>
+<p>相同的查询归一化因子将会附加给所有文档并且你没有任何办法去改变它, 总而言之, 它可以被设置成忽略</p>
+</blockquote>
+<h2 id="查询协调化-Query-coordination"><a href="#查询协调化-Query-coordination" class="headerlink" title="查询协调化(Query coordination)"></a>查询协调化(Query coordination)</h2><p>查询协调因子(coord)用于提高包含所查询片段比率高的文档分数, 文档中出现了越多的查询的片段, 则这个文档有更大机会是一个有效的匹配.</p>
+<p>假设我们有一个查询包含了quick brown fox这三个片段, 他们每个词的权重为1.5, 如果没有进行协调化, 他们的分数只是在文档中这些片段权重的汇总, 例如:</p>
+<ul>
+<li>fox → 分数: 1.5</li>
+<li>quick fox → 分数: 3.0</li>
+<li>quick brown fox → : 4.5</li>
+</ul>
+<p>协调因子乘以匹配的片段在这个文档中的分数然后除以这个查询中总的片段数, 在加上协调因子之后, 分数就有很大的不同了:</p>
+<ul>
+<li><p>fox → score: 1.5 * 1 / 3 = 0.5</p>
+</li>
+<li><p>quick fox → score: 3.0 * 2 / 3 = 2.0</p>
+</li>
+<li><p>quick brown fox → score: 4.5 * 3 / 3 = 4.5</p>
+</li>
+</ul>
+<p>加入了协调因子的结果, 当同时包含了3个片段的文档就比仅仅包含2个片段的文档相关度高得多.</p>
+<p>不要忘记包含quick brown fox的查询是被重写成了如下的布尔查询:</p>
+<p>GET /_search</p>
+<pre><code class="json">{
+  &quot;query&quot;: {
+    &quot;bool&quot;: {
+      &quot;should&quot;: [
+        { &quot;term&quot;: { &quot;text&quot;: &quot;quick&quot; }},
+        { &quot;term&quot;: { &quot;text&quot;: &quot;brown&quot; }},
+        { &quot;term&quot;: { &quot;text&quot;: &quot;fox&quot;   }}
+      ]
+    }
+  }
+}
+</code></pre>
+<p>bool 查询在默认情况下使用should 下所有的片段作为查询协调因子, 但是也允许你屏蔽掉协调因子, 为什么需要这样做呢? 呵呵, 通常的答案是: 不需要! 查询协调因子通常都是起到正面的作用, 当你使用bool 查询来包装一些高级别(high-level)的查询比如 match查询, 这种情况下保持协调化被开启也是有意义的, 越多的匹配, 你搜索结果之间的重叠度就更高.</p>
+<p>然而依然有一些复杂的场景可能需要关闭协调化, 假设你在搜索一些同义字, 比如jump, leap 和 hop, 你不关心这些同义词在文档中命中了多少次, 因为他们都表示相同的意思, 事实上, 通常只有一个同义词会被命中, 这是一个适合关闭协调因子的合适场景:</p>
+<p>GET /_search</p>
+<pre><code class="json">{
+  &quot;query&quot;: {
+    &quot;bool&quot;: {
+      &quot;disable_coord&quot;: true,
+      &quot;should&quot;: [
+        { &quot;term&quot;: { &quot;text&quot;: &quot;jump&quot; }},
+        { &quot;term&quot;: { &quot;text&quot;: &quot;hop&quot;  }},
+        { &quot;term&quot;: { &quot;text&quot;: &quot;leap&quot; }}
+      ]
+    }
+  }
+}
+</code></pre>
+<p>事实上, 当你使用同义词时, 内部将会进行处理, 重写请求为同义词关闭协调化, 大部分这种关闭动作会自动进行执行(但是中文环境缺少同义词词库的情况下可能不会执行), 你并不需要担心这些.</p>
+<h2 id="索引时字段级增强-Index-time-field-level-boosting"><a href="#索引时字段级增强-Index-time-field-level-boosting" class="headerlink" title="索引时字段级增强(Index time field-level boosting)"></a>索引时字段级增强(Index time field-level boosting)</h2><p>我们将对字段的增强进行讨论, 通过标记使得某些字段比其他字段更加重要, 使用查询时增强(query-time-boosting)这个晚点会进行说明, 另一种办法是在索引的时候来进行增强, 事实上, 这个增强会应用到字段里面的每一个片段而不是字段本身.</p>
+<p>为了在保存增强结果而不导致索引占据更多的空间, 索引字段级增强将会把结果合并到字段长度基准(field length norm)中通过一个字节来存储, 通过上面提到的norm(t,d)方法返回结果.</p>
+<blockquote>
+<p>我们基于以下几个原因强烈反对建议使用索引时字段增强:</p>
+<ol>
+<li>合并增强结果到字段长度基准使用一个字节进行存储意味着字段长度基准会损失一些精度, 结果是Elasticsearch无法区分一个字段有3个单词或者5个单词</li>
+<li>如果希望修改索引时的字段增强结果, 你必须对所有文档进行索引重建, 查询时增强则可以在每次查询的时候变化.</li>
+<li>如果一个被索引时增强的字段具备多个值(数组), 增强会被执行多次并相乘, 导致这个字段的权重非正常的提高<br>查询时增强更加简单,干净具备更加灵活的选项</li>
+</ol>
+</blockquote>
+<p>现在查询归一化, 协调化和索引时字段增强我们都讨论完毕了, 接下来我们可以讨论可能是相关度计算中最有用的工具了, 查询时字段增强</p>
+
+    
+    </div>
+    
+    <div class="columns is-variable is-1 is-multiline is-mobile">
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/ElasticSearch/">#ElasticSearch</a></span>
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/EDG/">#EDG</a></span>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2014/11/21/Hbase_practice/">Hbase 经验总结</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2014/11/01/EDG-Relevance-Scoring_theory/">相关度 - 相关度打分理论</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2019 Junheng Gong&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> & <a href="http://github.com/ppoffice/hexo-theme-minos">Minos</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+
+<script src="/js/script.js"></script>
+
+    
+</body>
+</html>

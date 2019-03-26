@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>分布式集群 - 简介 - Lunaroid</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+<meta name="description" content="junheng | scala | java | akka | architect | game">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+
+</head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            分布式集群 - 简介
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-12-02T02:59:28.000Z" itemprop="datePublished">12月 2 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            3 分钟 read (About 452 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <p>##Life Inside a Cluster</p>
+<blockquote>
+<p>###追加章节<br>就像之前提到的, 这个追加章节(除此之外还有一些其他主题的追加章节)是关于 Elasticsearch 如何在分布式集群环境下工作. 在这个章节我们会解释一些常常会用到的术语比如, 集群, 节点和分片, 还有Elasticsearch 集群进行横向扩展和如何应对硬件故障的方法</p>
+</blockquote>
+<blockquote>
+<p>虽然这个章节是选读的 (因为你有可能在很长一段时间内使用 Elasticsearch 不需要关心分片, 副本和失效备援) 但是可以帮助你理解 Elasticsearch 内部是如何工作的, 你完全可以跳过此章节并在有需要的时候再回来读它</p>
+</blockquote>
+<p>Elasticsearch 被构建为高可用性并且可以依照你得需求进行扩展, 你可以通过购买更加强大的服务器(垂直扩展)或者购买更多的服务器(水平扩展)来进行扩展.</p>
+<p>虽然 Elasticsearch 可以从强大的硬件获得性能提升, 但是垂直扩展是有其限制的, 真正的扩展都是通过水平进行的, 增加更多节点到集群并且在这些节点之间分配负载和可靠性需求</p>
+<p>大部分数据库进行水平扩展的时候通常需要对应用程序进行大量修改, 与此相反, Elasticsearch 天生就是分布式的, 它知道如何管理多节点来提供扩展性和高可用性, 这意味着你得应用程序完全不需要关注这些.</p>
+<p>在这个章节, 我们将会告诉你如何根据你得需求配置集群, 节点和分片, 这样即使遇到硬件损坏, 你的数据也是安全的.</p>
+
+    
+    </div>
+    
+    <div class="columns is-variable is-1 is-multiline is-mobile">
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/ElasticSearch/">#ElasticSearch</a></span>
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/EDG/">#EDG</a></span>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2014/12/25/elasticsearch-custom-scoring-notice/">Elastic Search 自定义公式</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2014/11/30/Elasticsearch_setup_and_test/">Elasticsearch 安装配置以及性能评估方法</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2019 Junheng Gong&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> & <a href="http://github.com/ppoffice/hexo-theme-minos">Minos</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+
+<script src="/js/script.js"></script>
+
+    
+</body>
+</html>

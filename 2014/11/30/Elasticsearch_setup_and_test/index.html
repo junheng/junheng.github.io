@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>Elasticsearch 安装配置以及性能评估方法 - Lunaroid</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+<meta name="description" content="junheng | scala | java | akka | architect | game">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+
+</head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            Elasticsearch 安装配置以及性能评估方法
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-11-30T03:34:18.000Z" itemprop="datePublished">11月 30 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            5 分钟 read (About 681 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <p>Elasticsearch 是一个实时的分布式搜索和分析引擎. 它可以帮助你用前所未有的速度去处理大规模数据.<br>它可以用于全文搜索,结构化搜索以及分析，当然你也可以将这三者进行组合</p>
+<ol>
+<li>维基百科使用 Elasticsearch 来进行全文搜做并高亮显示关键词，以及提供search-as-you-type、did-you-mean等搜索建议功能.</li>
+<li>英国卫报使用 Elasticsearch 来处理访客日志，以便能将公众对不同文章的反应实时地反馈给各位编辑.</li>
+<li>StackOverflow 将全文搜索与地理位置和相关信息进行结合,以提供more-like-this相关问题的展现.</li>
+<li>GitHub 使用 Elasticsearch 来检索超过 1300 亿行代码.</li>
+<li>Goldman Sachs 使用它来处理每天5TB数据的索引, 还有很多投行使用它来分析股票市场的变动.</li>
+</ol>
+<a id="more"></a>
+<p>##安装 ES<br>确保服务器已经安装 JDK 1.7</p>
+<p>下载 <a href="http://www.elasticsearch.org/overview/elkdownloads/" target="_blank" rel="noopener">http://www.elasticsearch.org/overview/elkdownloads/</a><br>得到 elasticsearch-version.zip</p>
+<p>解压缩到 elasticsearch-version 我们在下文把他成为$ELASTIC_HOME</p>
+<p>可以尝试以默认参数运行</p>
+<pre><code>$ELASTIC_HOME/bin/elasticsearch
+</code></pre><p>访问 localhost:9200 确认搜索引擎工作正常(retCode=200)</p>
+<p>##安装Analyser<br>将 IK Analyser 克隆到本地 <a href="https://github.com/medcl/elasticsearch-analysis-ik.git" target="_blank" rel="noopener">https://github.com/medcl/elasticsearch-analysis-ik.git</a><br>执行 mvn clean package<br>将target/releases/elasticsearch-analysis-ik-1.2.9下所有内容拷贝到 $ELASTIC_HOME/plugins/analysis-ik<br>将config拷贝到$ ELASTIC_HOME/config<br>修改elasticsearch.yml</p>
+<pre><code>#cluster.name: elastic
+node.name: &quot;localhost&quot;
+node.master: true
+
+index:
+  analysis:
+    analyzer:
+      ik:
+          alias: [news_analyzer_ik,ik_analyzer]
+          type: org.elasticsearch.index.analysis.IkAnalyzerProvider
+      ik_max_word:
+          type: ik
+          use_smart: false
+      ik_smart:
+          type: ik
+          use_smart: true
+</code></pre><p>GET localhost:9200/test/_analyze?analyzer=ik&amp;pretty=true&amp;text=测试分词结果<br>确认分词结果正常</p>
+<pre><code class="json">{
+  &quot;tokens&quot; : [ {
+    &quot;token&quot; : &quot;测试&quot;,
+    &quot;start_offset&quot; : 0,
+    &quot;end_offset&quot; : 2,
+    &quot;type&quot; : &quot;CN_WORD&quot;,
+    &quot;position&quot; : 1
+  }, {
+    &quot;token&quot; : &quot;分词&quot;,
+    &quot;start_offset&quot; : 2,
+    &quot;end_offset&quot; : 4,
+    &quot;type&quot; : &quot;CN_WORD&quot;,
+    &quot;position&quot; : 2
+  }, {
+    &quot;token&quot; : &quot;词&quot;,
+    &quot;start_offset&quot; : 3,
+    &quot;end_offset&quot; : 4,
+    &quot;type&quot; : &quot;CN_WORD&quot;,
+    &quot;position&quot; : 3
+  }, {
+    &quot;token&quot; : &quot;结果&quot;,
+    &quot;start_offset&quot; : 4,
+    &quot;end_offset&quot; : 6,
+    &quot;type&quot; : &quot;CN_WORD&quot;,
+    &quot;position&quot; : 4
+  } ]
+}
+</code></pre>
+<p>##创建索引<br>PUT localhost:9200/test?pretty</p>
+<p>####创建测试索引schema<br>PUT localhost:9200/test/_mapping/document/</p>
+<pre><code class="json">{
+    &quot;document&quot;: {
+        &quot;_all&quot;: {
+            &quot;index&quot;: &quot;not_analyzed&quot;,
+            &quot;store&quot;: &quot;false&quot;
+        },
+        &quot;properties&quot;: {
+            &quot;id&quot;: {
+                &quot;type&quot;: &quot;string&quot;,
+                &quot;index&quot;: &quot;not_analyzed&quot;
+            },
+            &quot;tags&quot;: {
+                &quot;type&quot;: &quot;string&quot;,
+                &quot;store&quot;: &quot;no&quot;,
+                &quot;indexAnalyzer&quot;: &quot;ik&quot;,
+                &quot;searchAnalyzer&quot;: &quot;ik&quot;
+            },
+            &quot;geo&quot;: {
+                &quot;type&quot;: &quot;geo_point&quot;
+            },
+            &quot;content&quot;: {
+                &quot;type&quot;: &quot;string&quot;,
+                &quot;indexAnalyzer&quot;: &quot;ik&quot;,
+                &quot;searchAnalyzer&quot;: &quot;ik&quot;
+            },
+            &quot;date&quot;: {
+                &quot;type&quot;: &quot;date&quot;,
+                &quot;format&quot;: &quot;dateOptionalTime&quot;
+            }
+        }
+    }
+}
+</code></pre>
+<p>####测试插入数据<br>PUT localhost:9200/test/_mapping/document/1</p>
+<pre><code class="json">{
+    &quot;id&quot;: &quot;1&quot;,
+    &quot;tags&quot;: [
+        &quot;sports&quot;,
+        &quot;music&quot;
+    ],
+    &quot;geo&quot;: {
+        &quot;lat&quot;: 31.267,
+        &quot;lon&quot;: 120.872
+    },
+    &quot;content&quot;: &quot;this is only for test&quot;,
+    &quot;date&quot;: &quot;2014-04-24T18:29:19Z&quot;
+}
+</code></pre>
+<p>返回</p>
+<pre><code class="json">{
+    &quot;_index&quot;: &quot;test&quot;,
+    &quot;_type&quot;: &quot;document&quot;,
+    &quot;_id&quot;: &quot;1&quot;,
+    &quot;_version&quot;: 1,
+    &quot;created&quot;: true
+}
+</code></pre>
+<p>####测试搜索<br>GET localhost:9200/test/document/_search<br>返回</p>
+<pre><code class="json">{&quot;took&quot;:285,&quot;timed_out&quot;:false,&quot;_shards&quot;:{&quot;total&quot;:5,&quot;successful&quot;:5,&quot;failed&quot;:0},&quot;hits&quot;:{&quot;total&quot;:1,&quot;max_score&quot;:1.0,&quot;hits&quot;:[{&quot;_index&quot;:&quot;test&quot;,&quot;_type&quot;:&quot;document&quot;,&quot;_id&quot;:&quot;1&quot;,&quot;_score&quot;:1.0,&quot;_source&quot;:{
+    &quot;id&quot;: &quot;1&quot;,
+    &quot;tags&quot;: [
+        &quot;sports&quot;,
+        &quot;music&quot;
+    ],
+    &quot;geo&quot;: {
+        &quot;lat&quot;: 31.267,
+        &quot;lon&quot;: 120.872
+    },
+    &quot;content&quot;: &quot;this is only for test&quot;,
+    &quot;date&quot;: &quot;2014-04-24T18:29:19Z&quot;
+}}]}}
+</code></pre>
+<p>##集群部署<br>在一个网域内相同名字的 Elasticsearch 服务器会被作为集群使用, 作为使用方, 你可以访问任意节点来获取数据</p>
+<p>####集群健康度<br>GET /_cluster/health<br>随时确保集群状态为 green</p>
+
+    
+    </div>
+    
+    <div class="columns is-variable is-1 is-multiline is-mobile">
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/Elasticsearch/">#Elasticsearch</a></span>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2014/12/02/EDG-Distributed_Cluster-Intro/">分布式集群 - 简介</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2014/11/28/Elasticsearch_or_solr/">Elasticsearch or Solr</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2019 Junheng Gong&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> & <a href="http://github.com/ppoffice/hexo-theme-minos">Minos</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+
+<script src="/js/script.js"></script>
+
+    
+</body>
+</html>

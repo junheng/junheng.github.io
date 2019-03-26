@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>相关度 - 查询时增强 - Lunaroid</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+<meta name="description" content="junheng | scala | java | akka | architect | game">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+
+</head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            相关度 - 查询时增强
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-11-24T08:58:57.000Z" itemprop="datePublished">11月 24 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            5 分钟 read (About 721 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <h2 id="Query-time-boosting"><a href="#Query-time-boosting" class="headerlink" title="Query time boosting"></a>Query time boosting</h2><p>在这个章节我们将介绍在查询时如何使用 boost 参数来区分字段的重要性, 从而使搜索结果得到增强<br><a id="more"></a></p>
+<p>GET /_search</p>
+<pre><code class="json">{
+  &quot;query&quot;: {
+    &quot;bool&quot;: {
+      &quot;should&quot;: [
+        {
+          &quot;match&quot;: {
+            &quot;title&quot;: {
+              &quot;query&quot;: &quot;quick brown fox&quot;,
+              &quot;boost&quot;: 2 (1)
+            }
+          }
+        },
+        {
+          &quot;match&quot;: { (2)
+            &quot;content&quot;: &quot;quick brown fox&quot;
+          }
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<ol>
+<li><p>针对 title 字段的查询子句的重要度是 content 字段的两倍, 因为它被因子2所增强</p>
+</li>
+<li><p>没有使用增强参数的查询, 默认情况下增强值为1</p>
+</li>
+</ol>
+<p>查询时增强是我们调整相关度的主要工具, 任何类型的查询都可以使用增强参数, 当一个增强参数被设置为2时不仅仅是将最终的_ score 变为两倍, 事实上增强参数被通过标准化和一些内部的优化之后才会生效, 但是, 确实增强2的情况意味着两倍重要于增强1</p>
+<p>事实上, 对于一个查询没有一个简单的公式可以帮你选择正确的增强参数, 你基本上只能边试边看, 记住增强(boost)只是相关度分数众多因子中得一个 - 他们还需要其他因子一起进行计算, 比如之前提到的例子, title 字段可能已经自然而然的因为字段长度因子被增强 - 标题通常总是比内容长度短,  所以不要盲目的去增强一个字段只是因为你觉得他们应该被增强, 添加一个增强看看结果, 然后再换一个增强再看看, 确保最终结果是你想要的.</p>
+<h2 id="增强索引-本身"><a href="#增强索引-本身" class="headerlink" title="增强索引(本身)"></a>增强索引(本身)</h2><p>当跨索引进行搜索的时候, 你可以使用indices_boost参数增强整个索引, 在下面的例子中, 通过这种方式给时间较近的索引较高的权重:</p>
+<p>GET /docs_2014_*/_search (1)</p>
+<pre><code class="json">{
+  &quot;indices_boost&quot;: { (2)
+    &quot;docs_2014_10&quot;: 3,
+    &quot;docs_2014_09&quot;: 2
+  },
+  &quot;query&quot;: {
+    &quot;match&quot;: {
+      &quot;text&quot;: &quot;quick brown fox&quot;
+    }
+  }
+}
+</code></pre>
+<ol>
+<li><p>这个多索引查询包括了所有以docs_2014_开头的索引</p>
+</li>
+<li><p>所有在索引docs_2014_10中得文档将被增强3, 那些在索引docs_2014_09被增强2, 其他的匹配的索引将保持默认增强值1</p>
+</li>
+</ol>
+<h2 id="t-getBoost"><a href="#t-getBoost" class="headerlink" title="t.getBoost()"></a>t.getBoost()</h2><p>在之前的Lucene 实质评分方法章节中提到过这个因子, 这些增强无法应用在查询表达式的层面上, 但是, 任何被增强结果都将被合并和传递到某个片段上, t.getBoost()函数返回任何被应用于片段本身或者查询的增强值.</p>
+<blockquote>
+<p>事实上, 直接去阅读 explain 输出的结果稍微有点复杂, 你只能看到合并了增强的查询基准(Query Norm)的片段, 而完全无法在 explain 中看到增强值或者 t.getBoost(), 尽管我们说对于所有片段都是使用相同的查询基准方法, 你将会看到哪些增强了之后片段权重会比为增强的要高.</p>
+</blockquote>
+
+    
+    </div>
+    
+    <div class="columns is-variable is-1 is-multiline is-mobile">
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/ElasticSearch/">#ElasticSearch</a></span>
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/EDG/">#EDG</a></span>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2014/11/26/Solr_spatial_search/">Solr的地理空间索引</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2014/11/21/Hbase_practice/">Hbase 经验总结</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2019 Junheng Gong&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> & <a href="http://github.com/ppoffice/hexo-theme-minos">Minos</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+
+<script src="/js/script.js"></script>
+
+    
+</body>
+</html>

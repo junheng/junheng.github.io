@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>Hbase 经验总结 - Lunaroid</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+<meta name="description" content="junheng | scala | java | akka | architect | game">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+
+</head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            Hbase 经验总结
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-11-21T06:50:12.000Z" itemprop="datePublished">11月 21 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            20 分钟 read (About 3029 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <p>使用 Hbase 一段时间之后根据网上找到的一些资料和这段时间总结下来的经验, Hbase 是一个经过各个大公司使用并确认, 是目前在可靠性, 性能, 开发难度, 可扩展性方面都非常不错的工具, 针对二维索引目前也有使用协处理器或者表内索引的办法, 但都无法完美解决, 通常会使用 Elasticearch 或 Solr(甚至是Mongodb)对数据进行索引, 在博客中我会陆续提到这些技术.<br><a id="more"></a></p>
+<p>##线上关注点</p>
+<ol>
+<li>CPU 负载状况</li>
+<li>内存使用情况</li>
+<li>网络流量(In/Out/RPC)</li>
+<li>磁盘 IO 状况</li>
+<li>读写请求响应时间, 读写请求次数, 读写请求分布/ GET/ NEXT 等</li>
+<li>Region 数量/  Region Block Cache命中率 / Compaction 队列 / Flush 次数 / Split 次数 / Compact次数 / 最大请求时间 /  Hlog 数量 / Block 本地化率 / Compact 流量 / Flush 流量 等</li>
+</ol>
+<p>##日志</p>
+<ol>
+<li>Hbase 日志</li>
+<li>HDFS 日志</li>
+<li>GC 日志 YGC / CMS / FGC (尤其是 FGC 要特别关注消耗时间)<br>服务端和客户端异常 (请求超时, 延时过高等)</li>
+</ol>
+<p>##监控工具</p>
+<ol>
+<li>Hbase WebUI, 仅提供了最基本的信息</li>
+<li>Ganglia, 有点老了, 但是依然好用, 比 WebUI 强大</li>
+<li>Cloudrea Manager, 推荐</li>
+<li>自己开发的监控程序, 例如对远程同步时延监控等.</li>
+</ol>
+<p>##工具</p>
+<ol>
+<li>jmap / jstack / jconsole 关注 JVM 运行时</li>
+<li>btrace, 运行环境调试, 动态注入字节码(注意, 不正确使用可能导致 jvm 崩溃, 先本地测试通过之后, 在使用到生产环境)</li>
+<li>java profiler (jrockit / yourkit java profiler)  jvm 运行状态监控, 比 jvm 自带的强大很多倍</li>
+<li>Hbase Shell, 必须要熟悉</li>
+<li>RegionSplitter / graceful_stop.sh / HFile / HLog / hbck / copytable / export / import<br>/ distcp / bulk load 等至少要知道干嘛的</li>
+</ol>
+<p>##系统指令<br>top / sar / vmstat / iptrac / df 这些都是最基本的</p>
+<p>##可能会遇到的问题</p>
+<ol>
+<li><p>version设置过多, blockcache, bloomfilter 类型不正确, storefile 过多, 命中率过低<br>解决的办法是, 分析 HFile, 看是否结果太大, 查看 HDFS看看是不是有一些块读取慢或者磁盘故障</p>
+</li>
+<li><p>客户端写请求大量出错<br>Region offline, split 时间过长, meta 表错误, Full GC, GC已经在使用 swap 交换分区, Load 过高, 磁盘压力过大, 磁盘故障, 这些需要配合监控程序找到问题, 看是加机器还是替换掉有问题的硬件, HDFS 出错, 内存上限, Request queue 堆积, 看看堆栈的情况</p>
+</li>
+<li><p>系统速度越来越慢<br>Flush compact过于频繁, 磁盘 IO 下降, Region的 storefile个数太多, region 不平衡命中率下降, 节点故障</p>
+</li>
+<li><p>数据丢失<br>Hbck检查下region 的分配情况, region server abort 日志是否有正确恢复, log / oldlogs 看看数据是否写入了</p>
+</li>
+<li><p>服务器进程挂了<br>FGC / YGC 时间太长, OOM, fatal 日志</p>
+</li>
+</ol>
+<p>##一些主要但是容易被忽略的配置</p>
+<ol>
+<li>直接关闭操作系统的swap 或者设置 swapiness为0, 一旦 GC 使用到了 swap 基本就要糟</li>
+<li>CMS GC, 默认为90%, 建议设置到65%-75%</li>
+<li>通过配置mslab 可以在一定程度上延缓 FGC 发作的时间.(仅仅是延缓), 使用BucketCache 解决 FGC 的问题(以提高 YGC 频率降低单词 YGC 的时间为代价, 在 taobao 被证明非常有效)</li>
+<li>zookeeper.session.timeout default 3 minutes, GC 时间不能超过ZK session 过期时间, 一旦超过会触发balance, 调高或者调低取决于集群负载状况, 在低负载情况下个人建议调低, 以便节点出现问题 hbase 能够迅速处理, 但在集群负载过高的情况下, 建议调高, 避免因为频繁 balance 导致集群负载雪上加霜</li>
+<li>hbase.regionserver.handler.count default 10, 较小的线程数比较适合 big put, 较多的线程适合内存少, TPS高的场景, 总之要对内存造成压力,这里需要注意的是如果server的region数量很少，大量的请求都落在一个region上，因快速充满memstore触发flush导致的读写锁会影响全局TPS，不是IO线程数越高越好。</li>
+</ol>
+<blockquote>
+<p>压测时，开启Enabling RPC-level logging，可以同时监控每次请求的内存消耗和GC的状况，最后通过多次压测结果来合理调节IO线程数。这里有一个案例,Hadoop and HBase Optimization for Read Intensive Search Applications(请谷歌)，作者在SSD的机器上设置IO线程数为100，仅供参考。</p>
+</blockquote>
+<ol start="6">
+<li><p>hbase.hregion.max.filesize default 256mb 需要加大(比如加到到100G 等于间接关掉自动 split), 减少 split, 在发现文件过大的时候手工进行split 使用 regionSplitter( 可以通过自己开发的工具来自动进行, 避开业务高峰时段),Compaction 和 split 是性能杀手, 切记!</p>
+</li>
+<li><p>hbase.hregion.memstore.block.multiplier 这个一般情况下默认值还是比较靠谱的, 不要乱改<br>不要在一张表里定义太多的Column Family, Hbase目前不能良好的处理超过包含2-3个CF的表。因为某个CF在flush发生时，它邻近的CF也会因关联效应被触发flush，最终导致系统产生更多IO。在批量导入数据到Hbase前，你可以通过预先创建regions，来平衡数据的负载。详见?</p>
+</li>
+<li><p>Bloom Filter以空间换时间, 一定要用</p>
+</li>
+</ol>
+<p>##踩过的坑</p>
+<ol>
+<li><p>Region Server OOM</p>
+<ul>
+<li>现象<br>region server 出现 OOM</li>
+<li>原因<br>Compaction 占用多大内存, 行数据过大(version 太多, 或者表太宽)</li>
+<li>解决办法<br>内存用量=Memstore+Blockcache+其他, 问题通常出在其他, 行数据尽量控制在1m 以内, 优化 compaction, 通过调整之前提到的hbase.hregion.max.filesize</li>
+</ul>
+</li>
+<li><p>NotServingRegionException</p>
+<ul>
+<li>现象<br>压力大时, Hbase不可用, 读写端周期性出现异常</li>
+<li>原因<br>通常我们对时效性数据或者带时间字段的数据会吧时间编入 key 中, 因此每天(或者隔一段时间)就会创建新的 region, 由于写入数据量较大, 进一步触发了Hbase的Region Split 操作, 这个操作耗时很长(平均10秒的样子, 当时大小设置的时4G), 而且触发的 Region split 非常频繁, Region split 会导致region 分布不均匀, 从而触发hbase 自动做 region rebalance 操作,  region进行迁移的时候这个 region 会下线, 时间还比较长(一般都要20秒吧)</li>
+<li>解决办法<br>Client 重试(…), 对Rowkey pre-split( 分片) , 减少hbase的自动split, 或者干脆 rowkey 设计成 ttl, 直接关掉 balance, 低峰时间段开启(真的, 后来我们发现这个方法最有效), 总的来说 region 不可用通常都是短时间的非致命性问题, 但是可能会对服务产生不良影响, 需要尽可能避免</li>
+</ul>
+</li>
+<li><p>Compaction和Scan 变慢</p>
+<ul>
+<li>现象<br>一个 Hbase 表, 每天会定时导入一批数据(和我们将来的场景类似), 数据量很大, 千万级别, 然后在其他时段为用户提供服务, 某天突然发现这个表按去 scan 少量数据部分 region非常慢, 需要十多秒甚至超过一分钟</li>
+<li>原因<br>从监控程序上来看, 这个表下面只有几个Storefile, 所以派出了 storefile 过多导致速度降低的原因, 最后问题是发现大量的重复数据在被进行覆盖, 但是未进行 compact 导致过去数据未被清除</li>
+<li>解决<br>每天导入数据之后, 强制执行major compact, 调小major compact周期, 指定时间段运行, 相关配置, hbase.hregion.majorcompaction / hbase.hstore.compaction.ratio, hbase.offpeak.start.hour / hbase.offpeak.end.hour / hbase.hstore.compaction.ratio.offpeak, hbase.regionserver.thread.compaction.large / hbase.regionserver.thread.compaction.small / hbase.regionserver.thread.compaction.throttle</li>
+</ul>
+</li>
+</ol>
+<p>##用 Zookeeper 管理多个集群<br>Zookeeper 是协调器, 轻量级, load 很低, 多个 hbase 通过 zookeeper.znode.parent配置到不同目录使用同一个 zookeeper 集群在集群多的时候提高运维效率, 节约点服务器</p>
+<p>##关于数据导入需求<br>个人不建议使用replication, 没用过, 而且听说坑比较多, (Hbase 里面你看起来那些越智能, 越方便的功能, 通常使用下来会发现非常坑爹)<br>建议使用bulkload, 原因是速度非常快, 适合导入场景, 在建表的时候一定要做好region 预切分, HFileOutputFormat.configureIncrementalLoad方法会根据region 数量来决定 reduce的数量和每个 reduce覆盖的 rowkey 范围, 否则某个 reduce任务过多, 降低导入性能<br>单个rowkey 下子列不要太多, 否则reduce 阶段排序会出现 oom, 你们也可以通过二次排序避免 reduce 去排序, 到时候看<br>bulkload 执行完毕之后需要把 hdfs 中生成好的文件写入到hbase 表中, 采用hadoop jar hbase- version.jar completebulkload /hfilepath tablename 命令实现。hadoop-lzo jar,LzoTextInputFormat, 黑科技, 支持 lzo 数据导入, 避免自定义压缩格式导入导出之前的解压缩操作</p>
+<p>##BlockCache 缓存(吐槽)<br>默认的blockcache 实现, 使用一个 hashmap 来维护 block key -&gt; block 的映射关系, 采用严格的LRU算法(有兴趣自己 google)来进行淘汰, 初始化会指定容量大小, 当使用量达到85%就开始淘汰block到75%<br>好处是直接使用jvm 的 hashmap, 简单, 内存用多少算多少, jvm 会帮你回收你释放的 block(by GC)<br>坏处一个 block从缓存到淘汰, 在 heap 中得位置从 new 到 old, 然后 old 区的缓存被淘汰之后, 就由 CMS 来回收, 然后就是 heap 碎片的问题, 又因为碎片的问题, 导致 FGC, 根据应用的情况, FGC 发生频率可能一个月, 一周, 甚至半年一天都可能, 所以避免作死, 最好还是低峰期手工来 GC<br>如果缓存的速度比淘汰的速度快, oops, 很有可能OOM(就挂了)</p>
+<p>##Hbase 的 GC<br>和女人心情一样, 随时都有可能出现的 FGC 会导致hbase 集群性能急剧下降, 导致客户端操作更严重超过 zookeeper 的超时时间导致 zookeeper 把这个 region 下线(从而导致后续一系列悲剧), blockcache 大量加载的时候(载入 block 到内存)出现的 ygc时间可能超过500ms, 个别情况 ygc 会长期保持在200ms 水平, 你在性能测试的时候会看到毛刺就是因为这个<br>典型的配置jvm head通常会开到34G, 其中 new 会设置到2-4G, CMS 发生比率配置在75%<br>根据应用场景不同, 如果要避免内存碎片过多, 会把 CMS 设置到65%, 这样其实牺牲了LRUcache 的大小, 影响了部分性能.<br>Hbase 出现FGC 绝大多数原因是因为内存碎片, 大部分场景是在连续混合读写后, 如果瞬间出现大量低命中读, 并伴随大量blockcache 加载, 就很容易出现.</p>
+<p>##Bloomfilter 是个好东西<br>为数不多看起来智能好用又不坑的东西, 提高随机读取的性能,对顺序读取没啥帮助, 在生成Storefile 的时候会包括 bloomfilter信息, metablock, 存在 blockcache 中, 对于某个 region 的随机读, hbase会遍历读memstore和 storefile, 将结果merge 后返回给客户端, 如果你设置了 bloomfilter, 那么在读取storefile 的时候就可以直接跳过一些storefile.</p>
+<ul>
+<li>region下的 storefile 越多 bloomfilter 效果越好</li>
+<li>region 下得 storefile 越少 hbase 读取性能就越好</li>
+</ul>
+<p>##毁灭性事故<br>某次运维将hbase.hregion.max.files设置成0了, 导致 region 无限制 split, 导致region offline, 从而你没法去挽救这种情况<br>解决办法就是到HDFS 中删除.META 文件/HDFS 文件/ZK 文件, 然后重启集群<br>只能挽救集群, 删除的文件中数据想办法恢复</p>
+<p>##Region server compact 占用大量带宽<br>Hbase 集群运行过程中部分 region server 直接将网络 IO 跑满 千兆网卡*2 同时机器负载也非常高<br>最后发现是大量写入造成频繁compaction<br>解决的办法就是减少 compaction</p>
+
+    
+    </div>
+    
+    <div class="columns is-variable is-1 is-multiline is-mobile">
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/BigData/">#BigData</a></span>
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/Hbase/">#Hbase</a></span>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2014/11/24/EDG-Relevance-Query_time_boosting/">相关度 - 查询时增强</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2014/11/12/EDG-Relevance-Practical_scoring/">相关度 - Lucene 实质评分方法</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2019 Junheng Gong&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> & <a href="http://github.com/ppoffice/hexo-theme-minos">Minos</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+
+<script src="/js/script.js"></script>
+
+    
+</body>
+</html>

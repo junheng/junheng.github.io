@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>Solr的地理空间索引 - Lunaroid</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+<meta name="description" content="junheng | scala | java | akka | architect | game">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+
+</head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            Solr的地理空间索引
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2014-11-26T12:52:32.000Z" itemprop="datePublished">11月 26 2014</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            15 分钟 read (About 2311 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <p>Solr 支持基于空间或者地理空间使用位置数据进行搜索, 使用空间搜索, 可以做到:<br>索引点位或者其他的形状<br>通过边界框,圆形或者其他形状来过滤搜索结果<br>基于两点间距离或者两个方形之间的相关区域进行排序和提高分数<br>索引和搜索具备多个值的时间或者其他数字范围<br><a id="more"></a></p>
+<p>在 Solr 4中有三种字段类型用于支持空间搜索:</p>
+<ol>
+<li>LatLonType 或者是非地理坐标 PointType</li>
+<li>SpatialRecursivePrefixTreeFieldType(RPT)</li>
+<li>BBoxField<br>LatLonType 是在 Solr 3 中被引入的第一种空间数据类型, 其他的几种在这之后被引入, RPT 提供了比 LatLonType 更多的功能和更快的过滤速度, 但是当有距离排序/优化的需求时 LatLonType 依然是最适合的. 他们可以被同时使用, LatLonType 用于排序和优化, RPT 用于过滤, 这样可以获得最好的效果, BBoxField用于边界框索引, 提供了一些谓语(相交,是否在..内,包含,于…不相交)进行搜索, 也可以使用类似overlapRatio或者简单的一个区域进行优化和排序, 更多信息可以参考<a href="http://wiki.apache.org/solr/SpatialSearch" target="_blank" rel="noopener">http://wiki.apache.org/solr/SpatialSearch</a>.</li>
+</ol>
+<p>##索引与过滤</p>
+<p>对于地理位置的索引(纬度与经度), 支持纬度于经度以两个数字用逗号分隔的字符串方式进行设置, 针对非地理位置坐标PointType, 顺序是 x,y, 如果是使用 RPT你必须使用空格代替逗号, 或者使用WKT</p>
+<p>针对SpatialRecursivePrefixTreeFieldType后续后章节专门描述</p>
+<p>##空间过滤</p>
+<p>以下参数用于进行空间搜索:<br>d =&gt; 放射距离(半径), 单位是公里(针对 RPT 字段单位则是度)<br>pt =&gt; 中心点, 使用”lat,lon”来表示经纬度, 如果使用 PointType 则是 “x,y”, 如果使用RPT 则是 “x y”</p>
+<p>###geofilt</p>
+<p>geofilt 过滤器允许你基于点位和地理空间距离获取数据(简单来说, 就是一个圆圈), 另一种办法是使用一个圆形过滤器, 例如搜索给定经纬度五公里以内的数据, 你可以输入 &amp;q=<em>:</em>&amp;fq={!geofilt sfield=store}&amp;pt=45.15,-93.85&amp;d=5, 这个过滤器将会返回给定坐标和半径内的所有数据:</p>
+<p>###bbox</p>
+<p>bbox过滤器非常类似于 geofilt 除了它使用一个边界框来代替之前的圆形, 参考途中蓝色的框, 它使用和 geofilt 一样的参数结构, 例如 &amp;q=<em>:</em>&amp;fq={!bbox sfield=store}&amp;pt=45.15,-93.85&amp;d=5, 矩形计算速度更快所以在有些时候如果能够接受一些点在半径之外的情况你可以用它来代替 geofilt, 然而, 如果你真的非常需要一个圆形的结果集并且希望它计算速度更快, 替代性的方式是使用 RPT字段并且尝试一个较大的 distErrPct 值例如0.1(10% radius). 这将使得结果集稍微超出预期的结果.</p>
+<p>注意: 当一个边界框包括了一个极点(北极, 南极, 或者上边界, 下边界), 边界框将变成边界球(球冠)的形式, 如果它包括了北极, 将包括所有最低纬度以北的值(如果是南极, 将包括从最高纬度以南所有的值) 其实这段我也没看太懂…</p>
+<p>###根据矩形进行过滤</p>
+<p>有时空间搜索需要查找一个矩形区域内的所有数据, 就像一个区域被以地图的方式展现给用户, 在这种情况下 geofilt 和 bbox 无法满足需求. 这看起来有点像小技巧,  你可以使用”左上角-右下角”的范围查询语法, 例如: &amp;q=<em>:</em>&amp;fq=store:[45,-94 TO 46,-93]. LatLonType 不支持矩形范围跨越国际日期变更线(经度0), 但是 RPT 可以, 如果你使用 RPT的非地理位置坐标系(geo=“false”), 你必须将点位用双引号包含起来, 例如 “x y”</p>
+<p>###优化: Solr Post Filtering</p>
+<p>非常相似, 通过 RPT 字段类型可以做到最快速度的空间过滤, 然而, 有时当空间查询不值得缓存或者并基于一些其他的查询条件导致没有太多结果的时候, 使用在LatLonType 字段类型上使用Solr post filtering速度会更快一些,  如果要在 LatLonType 字段类型上使用Solr post filtering, 使用bbox 或者 geofilt 查询字符串并且增加参数cache=false 和 cost=100(或者更大), 这里有一个例子:  </p>
+<pre><code>&amp;q=...mykeywords...&amp;fq=...someotherfilters...&amp;fq={!geofilt cache=false cost=100}&amp;sfield=store&amp;pt=45.15,-93.85&amp;d=5
+</code></pre><p>##距离查询</p>
+<p>总公共有四个距离查询方法:<br>geodist, 参考下文, 这通常是最常用的;<br>dist, 计算多维聚簇向量的 p- 范分布距离;<br>hsin, 计算球面上两点之间距离;<br>sqedist, 计算两点之间的欧氏距离;<br>具体使用方法以及方法定义请查阅文档中 Function Queries 部分</p>
+<p>###geodist</p>
+<p>geodist 距离方法需要三个可选参数(sfield,latitude,longitude), 你可以是用geodist 对结果进行排序和计算分数, 例如:<br>对结果进行距离反响排序:</p>
+<pre><code>&amp;q=*:*&amp;fq={!geofilt}&amp;sfield=store&amp;pt=45.15,-93.85&amp;d=50&amp;sort=geodist sac
+</code></pre><p>使用距离来结算结果分数:</p>
+<pre><code>&amp;q={!func}geodist()&amp;sfield=store&amp;pt=45.15,-93.85&amp;sort=score+asc
+</code></pre><p>##更多的例子</p>
+<p>这里有一些有用的例子来告诉你, Solr 可以进行什么样的空间搜索</p>
+<p>###使用子查询来扩展查询结果</p>
+<p>我们将查询 Florida州的Jacksonville市,  或者在45.15,-93.83(在Minnesota州Buffalo附近)50公里以内的数据:</p>
+<pre><code>&amp;q=*:*&amp;fq=(state:&quot;FL&quot; AND city:&quot;Jacksonville&quot;) OR {!geofilt}&amp;sfield=store&amp;pt=45.15,-93.85&amp;d=50&amp;sort=geodist()+asc
+</code></pre><p>###根据距离进行Facet</p>
+<p>对距离进行 facet, 你可以使用 Frange 查询:</p>
+<pre><code>&amp;q=*:*&amp;sfield=store&amp;pt=45.15,-93.85&amp;facet.query={!frange l=0 u=5}geodist()&amp;facet.query={!frange l=5.001 u=3000}geodist()
+</code></pre><p>这里还有一种其他的办法可以做到同样的事情, 比如在每个 facet.query 使用{!geofilt}</p>
+<p>###增强最近的结果</p>
+<p>使用 DistMax 或者 Extended DisMax, 你可以通过使用 boost function 通过并空间搜索结果来增强距离最近的结果:</p>
+<pre><code>&amp;q.alt=*:*&amp;fq={!geofilt}&amp;sfield=store&amp;pt=45.15,-93.85&amp;d=50&amp;bf=recip(geodist(),2,200,20)&amp;sort=score desc
+</code></pre><p>##SpatialRecursivePrefixTreeFieldType (RPT)</p>
+<p>这是Solr4 新的空间字段, 通过提供了一些新功能相对于 LatLonType 进行了改进:<br>除了圆形和矩形之外, 额外支持多边形和更复杂的形状查询<br>多个被索引的字段<br>支持非点状(例如多边形)的索引, 就像点状索引一样, (意思就是不急于点, 数据可以指向一个范围)<br>矩形可以跨越0经度(国际日期变更线), 在具备user-specified corners的情况下<br>多个值的距离排序和分数修正<br>Well-Known-Text (WKT) 形状语法(用于支持多边形和其他复杂的形状)<br>RPT 包括了 LatLonType 和 PointType 的基础功能, 类似 矩形边界和圆圈, 事实上你应该使用 geofilt,bbox,geodist 和 range-query 这些方法在 LatLonType 和PointType 上</p>
+<p>###Schema 定义</p>
+<p>要使用 RPT, 字段类型必须在 schema.xml 中注册, 这里提供了很多选项.</p>
+<ul>
+<li>name =&gt; 字段名称</li>
+<li>class =&gt; 应该是solr.SpatialRecursivePrefixTreeFieldType</li>
+<li>units =&gt; 这个是必须制定的, 当前仅支持” degrees”, 无法用于 geofilt,bbox或者geodist(他们都是用的公里), 同样用于maxDistErr字段</li>
+<li>distErrPct =&gt; 定义一个默认的非点状经度(同时用于索引和查询), 使用一个小数, 从0.0(完全精确) 到 0.5, 越接近0形状就约精确, 然而精确的索引形状将会消耗更多磁盘空间和使用更多时间进行索引, 更大的 distErrPct 值将会提高查询速度但降低精确度</li>
+<li>maxDistErr =&gt;定义索引数据的最高细节, 如果留空默认值将会是1米, 比0.000009度稍微小一点, 这个设置将用于计算一个合适的最大距离<br>geo =&gt; 如果设置为true, 也就是默认值, 经纬度坐标系将会适用于球形桌面, 如果是 fase 则仅局限于2D 坐标系</li>
+<li>worldBounds =&gt; 定义x 和 y 的数字范围, 格式为ENVELOPE(minX, maxX, maxY, minY), 如果 geo = true, 则标准的世界经纬坐标系范围江北限制, 如果 geo = false 则你需要自己定义一个</li>
+<li>distCalculator =&gt; 定义距离计算算法, 如果 geo = true, “haversine” 将是默认值, 如果 geo = false “cartesian” 将会是默认值, 另外一些可能的值包括”lawOfCosines”, “vincentySphere” 和 “cartesian^2”</li>
+<li>prefixTree =&gt; 定义空间网格实现, 因为 Prefixtree将世界映射为一个网格, 每一个cell都会包含其下一层其他的所有cell, 如果 geo = false 那么默认的 prefix tree 则为 “geohash” 其他情况为 “quad”, geohash在每级上包含32个子, quad 有8个, geohash 无法用于 geo=false , 因为他是一个严格的地理空间概念</li>
+<li>maxLevels =&gt; 设置最大层级深度, 通常更直观的计算合适的 maxLevels 通过定义 maxDistErr<pre><code class="xml">&lt;fieldType name=&quot;location_rpt&quot;   class=&quot;solr.SpatialRecursivePrefixTreeFieldType&quot;
+             spatialContextFactory=&quot;com.spatial4j.core.context.jts.JtsSpatialContextFactory&quot;
+             autoIndex=&quot;true&quot;
+             distErrPct=&quot;0.025&quot;
+             maxDistErr=&quot;0.000009&quot;
+             units=&quot;degrees&quot; /&gt;
+</code></pre>
+当字段类型定义好了, 我们就定义一些字段来使用它们.<br>因为 RPT 具备一些更加先进的功能, 其中一些功能是新的或者实验性质的, 请查看<a href="http://wiki.apache.org/solr/SolrAdaptersForLuceneSpatial4以获取更多细节" target="_blank" rel="noopener">http://wiki.apache.org/solr/SolrAdaptersForLuceneSpatial4以获取更多细节</a></li>
+</ul>
+
+    
+    </div>
+    
+    <div class="columns is-variable is-1 is-multiline is-mobile">
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/Solr/">#Solr</a></span>
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/BigData/">#BigData</a></span>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2014/11/28/Elasticsearch_or_solr/">Elasticsearch or Solr</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2014/11/24/EDG-Relevance-Query_time_boosting/">相关度 - 查询时增强</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2019 Junheng Gong&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> & <a href="http://github.com/ppoffice/hexo-theme-minos">Minos</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+
+<script src="/js/script.js"></script>
+
+    
+</body>
+</html>

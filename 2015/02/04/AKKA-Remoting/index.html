@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>Remoting - Lunaroid</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+<meta name="description" content="junheng | scala | java | akka | architect | game">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+
+</head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                <img src="/images/logo.png" alt height="28">
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            Remoting
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2015-02-04T07:40:58.000Z" itemprop="datePublished">2月 4 2015</time>
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            22 分钟 read (About 3349 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <p>##Remoting<br>Akka remoting 包括了一系列远程部署于监控相关功能, 这些功能均可以以配置方式实现也可以通过编程方式.<br><a id="more"></a></p>
+<blockquote>
+<p>Akka remoting 基于点对点的通讯模式所设计并且相对于客户端服务器模式有一些限制, 特别是 Akka Remoting 无法很好的使用包括 NAT 和 第三方负载均衡器以及其他的一些网络基础设施.</p>
+</blockquote>
+<p>###让你的 ActorSystem 做好使用 Remoting 的准备<br>Akka Remoting 是一个单独的 jar 包, 请确认这个如下的 jar 包已经作为依赖添加到项目的 sbt 文件中.</p>
+<pre><code class="scala">&quot;com.typesafe.akka&quot; %% &quot;akka-remote&quot; % &quot;2.3.9&quot;
+</code></pre>
+<p>要在 Akka 项目中使用远程特性, 至少需要在 application.conf 中做出类似以下的修改.</p>
+<pre><code class="scala">akka {
+  actor {
+    provider = &quot;akka.remote.RemoteActorRefProvider&quot;
+  }
+  remote {
+    enabled-transports = [&quot;akka.remote.netty.tcp&quot;]
+    netty.tcp {
+      hostname = &quot;127.0.0.1&quot;
+      port = 2552
+    }
+ }
+}
+</code></pre>
+<p>As you can see in the example above there are four things you need to add to get started:<br>就像你再上面例子中看到的一样, 总共有四个配置需要添加:</p>
+<ul>
+<li>将 provider 的类型从 <code>akka.actor.LocalActorRefProvider</code> 修改为 <code>akka.remote.RemoteActorRefProvider</code></li>
+<li>指定传输端口, 通常是<code>akka.remote.netty.tcp</code></li>
+<li>添加地址 - 就是你运行 Akka 应用程序的机器名或者 IP 地址, 机器名将用于标记本地系统绑定网卡使得本地的 Akka system 可以和远端通信, 并且远端也可以基于此地址连接到本地系统</li>
+<li>添加端口号 - Akka remoting 侦听的端口号, 设置成0系统会自动寻找一个可用的端口</li>
+</ul>
+<blockquote>
+<p>如果有超过一个 akka 系统在一台机器上, 则端口号必须互不相同, 即使是这些 akka 系统名称不相同, 这是因为每个 akka 系统进程都会进行自己的网络侦听和连接.</p>
+</blockquote>
+<p>这个例子仅仅阐述了启用 remoting 所需的最低限度的配置, 其他相关配置, 会在文章末尾给出.</p>
+<p>###使用 Remoting 的两种方法<br>Akka 有两种办法来使用 Remoting</p>
+<ul>
+<li>查找: 使用 <code>actorSelection(path)</code> 查找一个位于远程节点上的 actor</li>
+<li>创建: 使用 <code>actorOf(Props(...), actorName)</code> 在一个远程节点上创建一个 actor</li>
+</ul>
+<p>下面一个章节中我们将会对这两种方法进行详细计算.</p>
+<p>###查找远程 Actor<br><code>actorSelection(path)</code> 将会返回一个 指向远端节点上 actor 的 <code>ActorSelection</code>, 例如:</p>
+<pre><code class="scala">val selection = context.actorSelection(&quot;akka.tcp://actorSystemName@10.0.0.1:2552/user/actorName&quot;)
+</code></pre>
+<p>就像你在上面的例子中所看到的一样, 用以下的模式来找到在远端节点上的 actor:</p>
+<pre><code class="scala">akka.&lt;protocol&gt;://&lt;actor system&gt;@&lt;hostname&gt;:&lt;port&gt;/&lt;actor path&gt;
+</code></pre>
+<p>一旦你获取到 actor 的 selection 之后, 你可以像本地节点一样的方式和它进行通讯:</p>
+<pre><code class="scala">selection ! &quot;Pretty awesome feature&quot;
+</code></pre>
+<p>如果需要通过<code>ActorSelection</code>获取到相应的<code>ActorRef</code>你需要发送一条消息给那个 selection 并且在收到回复消息之后, 使用 <code>sender</code> 来获取对端的 <code>ActorRef</code>, 内置消息<code>Identify</code>是所有 actor 都能够理解并且自动以一个<code>ActorIdentity</code>(包含了对应的 ActorRef)消息回复发送者. 你也可以使用<code>ActorSelection</code>的<code>resolveOne</code>这个方法返回一个结果为<code>ActorRef</code>的<code>Future</code></p>
+<blockquote>
+<p>关于 actor 地址和路径更多的细节请参考相关其他文章</p>
+</blockquote>
+<p>###创建远端的 actor<br>如果你希望以远端的方式来创建 actor 你可以在<code>application.conf</code>添加如下配置(这里仅仅是部署的部分)</p>
+<pre><code class="scala">akka {
+  actor {
+    deployment {
+      /sampleActor {
+        remote = &quot;akka.tcp://sampleActorSystem@127.0.0.1:2553&quot;
+      }
+    }
+  }
+}
+</code></pre>
+<p>上面的配置告诉 Akka 当一个路径为<code>/sampleActor</code>的 actor 被创建时, 比如使用<code>system.actorOf(Props(...), &quot;sampleActor&quot;)</code>, 这个 actor 将不会被直接初始化, 取而代之的远端系统将会来创建这个 actor, 在这个例子中, 远端系统就是<a href="mailto:`sampleActorSystem@127.0.0.1" target="_blank" rel="noopener">`sampleActorSystem@127.0.0.1</a>:2553`</p>
+<p>一旦你加入了上面的配置, 就可以直接像创建本地 actor 的方式进行创建了:</p>
+<pre><code class="scala">val actor = system.actorOf(Props[SampleActor], &quot;sampleActor&quot;)
+actor ! &quot;Pretty slick&quot;
+</code></pre>
+<p>上面例子中的, actor 的类型<code>SampleActor</code>将在运行时被使用, 也就是说, 目标系统的 classloader 必须已经包含了这个类.</p>
+<blockquote>
+<p>为了去确保 Props 在使用了传入构造函数参数的情况下能够正常的被序列化, 不要在使用内部类来作为工厂, 这回导致依赖内部类的容器类, 在大部分场景下, 这都将导致序列化失败, 或者意外的序列化开销, 最佳的方案是将工厂方法放在 actor 的伴生对象中.<br>所有<code>Props</code>的可序列化性检测可以通过开启<code>akka.actor.serialize-creators=on</code>配置激活, 开启这个配置后, 只有本地部署 actor 可以避免被检测</p>
+</blockquote>
+<blockquote>
+<p>你可以使用<code>*</code>作为通配符匹配 actor 的路径, 所以你可以用<code>/*/sampleActor</code>来匹配在这个路径下所有名为<code>sampleActor</code>的 actor, 你同样可以将通配符用在路径的最后一层<code>/someParent/*</code>, 没有任何通配符的匹配优先级高于任何有通配符的, 所以<code>/foo/bar</code>被认为比<code>/foo/*</code>更为精确, 所以前者生效而后者不生效. 另外需要注意的是, 部分匹配是不生效的, 例如<code>/foo*/bar</code>或者<code>/f*o/bar</code></p>
+</blockquote>
+<p>###使用编程方式来远程部署<br>为了允许动态的部署, 因此也可以在 Props 上附加部署相关的配置用于远程创建actor, 这些额外的属性等价于配置文件中<code>development</code>这个节点下的内容, 如果通过变成方式增加了 deploy 信息而外部配置文件也具有相关信息, 则以外部配置文件为主.</p>
+<p>你需要 import 以下包:</p>
+<pre><code class="scala">import akka.actor.{ Props, Deploy, Address, AddressFromURIString }
+import akka.remote.RemoteScope
+</code></pre>
+<p>创建远程地址:</p>
+<pre><code class="scala">val one = AddressFromURIString(&quot;akka.tcp://sys@host:1234&quot;)
+val two = Address(&quot;akka.tcp&quot;, &quot;sys&quot;, &quot;host&quot;, 1234) // this gives the same
+</code></pre>
+<p>以远程方式来创建 actor:</p>
+<pre><code class="scala">val ref = system.actorOf(Props[SampleActor].withDeploy(Deploy(scope = RemoteScope(address))))
+</code></pre>
+<p>###生命周期和错误恢复模型<br><img src="http://doc.akka.io/docs/akka/2.3.9/_images/association_lifecycle1.png" alt="image"></p>
+<p>所有远程系统的连接状态均为上图所表现出的四中状态中的一种, 在远程系统没有进行任何通讯之前, 它的状态都是<code>Idle</code>, 当消息第一次视图发送给远程系统, 或者一个入站连接被接受时, 这个 link 的状态将变成<code>Active</code>这意味着两个系统之间开始有消息发送或接受并且到目前为止没遇到什么问题, 当一次通讯失败(例如, TCP连接失败, 传输FD被触发?, 机器名解析失败, 远端系统关闭)并且两个系统之间的连接丢失了, 这时连接将会变为<code>Gated</code>.</p>
+<p>在这个状态, 系统将不会试图链接远程系统, 并且所有出站的消息将会被放弃, 一个连接的<code>Gated</code>状态持续时间由<code>akka.remote.retry-gate-closed-for</code>这个配置进行控制, 在这个配置中的时间过去之后链接状态将会再次回到<code>Idle</code>, <code>Gate</code> 是一个在单边上的意义, 所以一旦一个来自于远端系统的入站链接被接受之后, <code>Gate</code>将会自动变成<code>Active</code>状态, 并且通讯将会立即恢复.</p>
+<p>面对灾难性通讯失败(例如,远程系统死亡监控被触发, 系统级消息发送失败, 系统集群被移除的事件被侦听到), 这是无法恢复的, 因为相关系统的状态已经不一致了, 远端系统将会变成<code>Quarantined</code>, 不像<code>Gate</code>, <code>Quarantined</code>是永久性的, 知道其中一个系统重新启动, 在重新启动之后通讯将会被恢复, 而连接状态将会重新变成<code>Active</code></p>
+<p>###监控远程 actor<br>监控远程 actor 和监控本地 actor 没什么区别, 请参相关文档.</p>
+<blockquote>
+<p>监控一个由<code>actorFor</code>获取的<code>ActorRef</code>不会在失去连接的时候触发<code>Terminated</code>事件, <code>actorFor</code>已经过时, 需要用<code>actorSelection</code>来代替, 通过<code>Identify</code>消息来接受<code>ActorIdentify</code>消息在相关文档中已经描述.</p>
+</blockquote>
+<p>####失败侦测<br>在远程死亡监控中我们使用心跳消息并且在网络错误或者JVM崩溃时时创建一个<code>Terminated</code>,并且以平滑的方式终止所监控的actor.</p>
+<p>心跳规则基于 The Phi Accrual Failure Detector.</p>
+<p>错误产生的可能级别, 通过叫做<code>phi</code>的值来给定, phi错误侦测的基本概念就是基于当前网络状况动态的调整phi, phi的值通过以下公式计算:</p>
+<pre><code class="match">phi = -log10(1 - F(timeSinceLastHeartbeat))
+</code></pre>
+<p>F是一个基于平均值的正态分布具和从历史心跳间到达时间估计的标准偏差的累积分布函数, 在配置文件中remote部分你可以通过调整<code>akka.remote.watch-failure-detector.threshold</code>值来确定phi到达到何种程度时就视作错误发生.</p>
+<p>如果将<code>threshold</code>设置的较低, 可能导致需要误报发生但是可以确保一旦有错误发生可以很快的被侦测到, 相对的, 一个较高的<code>threshold</code>值将产生较少的错误, 但是需要更多时间才能探测到一个真正的错误, 默认的<code>threshold</code>的值为10, 这应该适用于大部分场景, 但是在使用云端的场景, 比如Amazon EC2, 这个值可能需要被增加到12来避免这些平台经常出现的网络错误.</p>
+<p>下面的表格模拟了, 当心跳时间开始增加时, phi值的变化.<br><img src="http://doc.akka.io/docs/akka/2.3.9/_images/phi11.png" alt="image"></p>
+<p>phi基于平均值和历史到达时间的标准偏差来进行计算, 上面的图表是一个标准偏差达到200毫秒的例子, 如果心跳抵达时间遍插值更小, 则取消变得更加陡峭, 换而言之, 这使得错误被识别出来的更快, 下图是标准偏差达到100毫秒的例子.<br><img src="http://doc.akka.io/docs/akka/2.3.9/_images/phi21.png" alt="image"></p>
+<p>为了能够在突发性的异常中存活, 比如垃圾收集导致的暂停, 短暂的网络故障等, 可以调整remote配置中的<code>akka.remote.watch-failure-detector.acceptable-heartbeat-pause</code>. 下图展示了当<code>acceptable-heartbeat-pause</code>被设置到3秒的效果.<br><img src="http://doc.akka.io/docs/akka/2.3.9/_images/phi31.png" alt="image"></p>
+<p>###序列化<br>当使用远程actor的时候你必须确认这些 actor 所使用的<code>props</code>和<code>message</code>都是可以被成功序列化的, 否则可能会导致系统出一些意料之外的错误. 更多的细节请参阅akka序列化这部分文档.</p>
+<p>###在 Router 中使用远程地址<br>Router中使用remoting功能是完全可行的, 一个进行远程部署的pool可以像这样进行配置:</p>
+<pre><code class="json">akka.actor.deployment {
+  /parent/remotePool {
+    router = round-robin-pool
+    nr-of-instances = 10
+    target.nodes = [&quot;akka.tcp://app@10.0.0.2:2552&quot;, &quot;akka://app@10.0.0.3:2552&quot;]
+  }
+}
+</code></pre>
+<p>这个配置将会使用给定的<code>Props</code>在每个配置的节点上创建10个actor.</p>
+<p>一个远程 actor 的 group 可以像这样配置:</p>
+<pre><code class="json">akka.actor.deployment {
+  /parent/remoteGroup {
+    router = round-robin-group
+    routees.paths = [
+      &quot;akka.tcp://app@10.0.0.1:2552/user/workers/w1&quot;, 
+      &quot;akka.tcp://app@10.0.0.2:2552/user/workers/w1&quot;,
+      &quot;akka.tcp://app@10.0.0.3:2552/user/workers/w1&quot;]
+  }
+}
+</code></pre>
+<p>这个配置将会发送消息给所有定义的 actor, 这需要你在远程节点上预先创建好这些 actor, group router 不会替你来做这些事情</p>
+<p>###Remoting的例子<br>Akka官方网站上有一些相关的例子可以查询. 请自行Google</p>
+<p>####可插拔的传输层<br>Akka Remoting被设计为可以使用各种不同的传输层实现来与其他远程系统通信, 核心组件功能通过<code>akka.remote.transport.Transport</code>定义, 传输层都必须实现这个特性, 传输层可以通过<code>akka.remote.enabled-transports</code>这个配置来进行加载, 相关的参数也可以包含在配置文件中.</p>
+<p>一个Netty SSL传输层的例子.</p>
+<pre><code class="json">akka {
+  remote {
+    enabled-transports = [akka.remote.netty.ssl]
+
+    netty.ssl.security {
+      key-store = &quot;mykeystore&quot;
+      trust-store = &quot;mytruststore&quot;
+      key-store-password = &quot;changeme&quot;
+      key-password = &quot;changeme&quot;
+      trust-store-password = &quot;changeme&quot;
+      protocol = &quot;TLSv1&quot;
+      random-number-generator = &quot;AES128CounterSecureRNG&quot;
+      enabled-algorithms = [TLS_RSA_WITH_AES_128_CBC_SHA]
+    }
+  }
+}
+</code></pre>
+<p>一个自定义传输层的例子</p>
+<pre><code class="json">akka {
+  remote {
+    applied-transports = [&quot;akka.remote.mytransport&quot;]
+
+    mytransport {
+      # The transport-class configuration entry is required, and
+      # it must contain the fully qualified name of the transport
+      # implementation
+      transport-class = &quot;my.package.MyTransport&quot;
+
+      # It is possible to decorate Transports with additional services.
+      # Adapters should be registered in the &quot;adapters&quot; sections to
+      # be able to apply them to transports
+      applied-adapters = []
+
+      # Driver specific configuration options has to be in the same
+      # section:
+      some-config = foo
+      another-config = bar
+    }
+  }
+}
+</code></pre>
+<p>####远程事件<br>监听远程系统中的事件是可行的, 并且只需要简单的在<code>ActorSystem.eventStream</code>中进行注册/反注册即可.</p>
+<blockquote>
+<p>使用<code>RemotingLifecycleEvent</code>来注册所有远程事件, 使用<code>akka.remote.AssociationEvent</code>注册连接生命周期事件.</p>
+</blockquote>
+<blockquote>
+<p>使用<code>Association</code>而不是<code>Connection</code>因为远程系统可能使用一些无连接的传输层, 一个association对于传输层可以使用akka系统非常容易的维护.</p>
+</blockquote>
+<p>默认情况下一个侦听器将会将会注册所有的事件, 这个默认值非常有帮助你调整整个系统, 但是通常在生产环境可以通过配置关闭</p>
+<blockquote>
+<p>要关闭logging, 将<code>akka.remote.log-remote-lifecycle-events</code> 设置为 off</p>
+</blockquote>
+<p>相关事件:</p>
+<ul>
+<li>DisassociatedEvent 连接被关闭</li>
+<li>AssociatedEvent 连接建立</li>
+<li>AssociationErrorEvent 连接出错, 在需要直接介入错误处理时侦听</li>
+<li>RemotingListenEvent 远程系统已经做好接受连接准备</li>
+<li>RemotingShutdownEvent 远程系统已经关闭</li>
+<li>RemotingErrorEvent remoting相关错误</li>
+</ul>
+<p>略过安全性方面配置, 生产环境一般不会用到</p>
+
+    
+    </div>
+    
+    <div class="columns is-variable is-1 is-multiline is-mobile">
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/Akka/">#Akka</a></span>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2015/02/11/AKKA-About-Cluster-Pool/">关于Akka中集群Pool的一些行为</a>
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2015/01/11/git-special-words-path-remove/">GIT 提交时的特殊字符</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2019 Junheng Gong&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> & <a href="http://github.com/ppoffice/hexo-theme-minos">Minos</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("zh-CN");
+</script>
+
+
+
+<script src="/js/script.js"></script>
+
+    
+</body>
+</html>
