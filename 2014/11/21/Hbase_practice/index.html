@@ -97,14 +97,14 @@
 
 
   <meta name="description" content="使用 Hbase 一段时间之后根据网上找到的一些资料和这段时间总结下来的经验, Hbase 是一个经过各个大公司使用并确认, 是目前在可靠性, 性能, 开发难度, 可扩展性方面都非常不错的工具, 针对二维索引目前也有使用协处理器或者表内索引的办法, 但都无法完美解决, 通常会使用 Elasticearch 或 Solr(甚至是Mongodb)对数据进行索引, 在博客中我会陆续提到这些技术.">
-<meta name="keywords" content="BigData,Hbase">
+<meta name="keywords" content="Hbase, Bigdata">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Hbase 经验总结">
 <meta property="og:url" content="http://junheng.github.com/2014/11/21/Hbase_practice/index.html">
 <meta property="og:site_name" content="Memory Unit 01">
 <meta property="og:description" content="使用 Hbase 一段时间之后根据网上找到的一些资料和这段时间总结下来的经验, Hbase 是一个经过各个大公司使用并确认, 是目前在可靠性, 性能, 开发难度, 可扩展性方面都非常不错的工具, 针对二维索引目前也有使用协处理器或者表内索引的办法, 但都无法完美解决, 通常会使用 Elasticearch 或 Solr(甚至是Mongodb)对数据进行索引, 在博客中我会陆续提到这些技术.">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2014-11-26T08:55:09.000Z">
+<meta property="og:updated_time" content="2019-03-26T05:50:12.666Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Hbase 经验总结">
 <meta name="twitter:description" content="使用 Hbase 一段时间之后根据网上找到的一些资料和这段时间总结下来的经验, Hbase 是一个经过各个大公司使用并确认, 是目前在可靠性, 性能, 开发难度, 可扩展性方面都非常不错的工具, 针对二维索引目前也有使用协处理器或者表内索引的办法, 但都无法完美解决, 通常会使用 Elasticearch 或 Solr(甚至是Mongodb)对数据进行索引, 在博客中我会陆续提到这些技术.">
@@ -404,7 +404,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：11月 26 2014 16:55:09" itemprop="dateModified" datetime="2014-11-26T16:55:09+08:00">11月 26 2014</time>
+                <time title="修改时间：3月 26 2019 13:50:12" itemprop="dateModified" datetime="2019-03-26T13:50:12+08:00">3月 26 2019</time>
               
             
           </span>
@@ -439,8 +439,7 @@
 
       
         <p>使用 Hbase 一段时间之后根据网上找到的一些资料和这段时间总结下来的经验, Hbase 是一个经过各个大公司使用并确认, 是目前在可靠性, 性能, 开发难度, 可扩展性方面都非常不错的工具, 针对二维索引目前也有使用协处理器或者表内索引的办法, 但都无法完美解决, 通常会使用 Elasticearch 或 Solr(甚至是Mongodb)对数据进行索引, 在博客中我会陆续提到这些技术.<br><a id="more"></a></p>
-<p>##线上关注点</p>
-<ol>
+<h2 id="线上关注点"><a href="#线上关注点" class="headerlink" title="线上关注点"></a>线上关注点</h2><ol>
 <li>CPU 负载状况</li>
 <li>内存使用情况</li>
 <li>网络流量(In/Out/RPC)</li>
@@ -448,30 +447,26 @@
 <li>读写请求响应时间, 读写请求次数, 读写请求分布/ GET/ NEXT 等</li>
 <li>Region 数量/  Region Block Cache命中率 / Compaction 队列 / Flush 次数 / Split 次数 / Compact次数 / 最大请求时间 /  Hlog 数量 / Block 本地化率 / Compact 流量 / Flush 流量 等</li>
 </ol>
-<p>##日志</p>
-<ol>
+<h2 id="日志"><a href="#日志" class="headerlink" title="日志"></a>日志</h2><ol>
 <li>Hbase 日志</li>
 <li>HDFS 日志</li>
 <li>GC 日志 YGC / CMS / FGC (尤其是 FGC 要特别关注消耗时间)<br>服务端和客户端异常 (请求超时, 延时过高等)</li>
 </ol>
-<p>##监控工具</p>
-<ol>
+<h2 id="监控工具"><a href="#监控工具" class="headerlink" title="监控工具"></a>监控工具</h2><ol>
 <li>Hbase WebUI, 仅提供了最基本的信息</li>
 <li>Ganglia, 有点老了, 但是依然好用, 比 WebUI 强大</li>
 <li>Cloudrea Manager, 推荐</li>
 <li>自己开发的监控程序, 例如对远程同步时延监控等.</li>
 </ol>
-<p>##工具</p>
-<ol>
+<h2 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h2><ol>
 <li>jmap / jstack / jconsole 关注 JVM 运行时</li>
 <li>btrace, 运行环境调试, 动态注入字节码(注意, 不正确使用可能导致 jvm 崩溃, 先本地测试通过之后, 在使用到生产环境)</li>
 <li>java profiler (jrockit / yourkit java profiler)  jvm 运行状态监控, 比 jvm 自带的强大很多倍</li>
 <li>Hbase Shell, 必须要熟悉</li>
 <li>RegionSplitter / graceful_stop.sh / HFile / HLog / hbck / copytable / export / import<br>/ distcp / bulk load 等至少要知道干嘛的</li>
 </ol>
-<p>##系统指令<br>top / sar / vmstat / iptrac / df 这些都是最基本的</p>
-<p>##可能会遇到的问题</p>
-<ol>
+<h2 id="系统指令"><a href="#系统指令" class="headerlink" title="系统指令"></a>系统指令</h2><p>top / sar / vmstat / iptrac / df 这些都是最基本的</p>
+<h2 id="可能会遇到的问题"><a href="#可能会遇到的问题" class="headerlink" title="可能会遇到的问题"></a>可能会遇到的问题</h2><ol>
 <li><p>version设置过多, blockcache, bloomfilter 类型不正确, storefile 过多, 命中率过低<br>解决的办法是, 分析 HFile, 看是否结果太大, 查看 HDFS看看是不是有一些块读取慢或者磁盘故障</p>
 </li>
 <li><p>客户端写请求大量出错<br>Region offline, split 时间过长, meta 表错误, Full GC, GC已经在使用 swap 交换分区, Load 过高, 磁盘压力过大, 磁盘故障, 这些需要配合监控程序找到问题, 看是加机器还是替换掉有问题的硬件, HDFS 出错, 内存上限, Request queue 堆积, 看看堆栈的情况</p>
@@ -483,8 +478,7 @@
 <li><p>服务器进程挂了<br>FGC / YGC 时间太长, OOM, fatal 日志</p>
 </li>
 </ol>
-<p>##一些主要但是容易被忽略的配置</p>
-<ol>
+<h2 id="一些主要但是容易被忽略的配置"><a href="#一些主要但是容易被忽略的配置" class="headerlink" title="一些主要但是容易被忽略的配置"></a>一些主要但是容易被忽略的配置</h2><ol>
 <li>直接关闭操作系统的swap 或者设置 swapiness为0, 一旦 GC 使用到了 swap 基本就要糟</li>
 <li>CMS GC, 默认为90%, 建议设置到65%-75%</li>
 <li>通过配置mslab 可以在一定程度上延缓 FGC 发作的时间.(仅仅是延缓), 使用BucketCache 解决 FGC 的问题(以提高 YGC 频率降低单词 YGC 的时间为代价, 在 taobao 被证明非常有效)</li>
@@ -502,8 +496,7 @@
 <li><p>Bloom Filter以空间换时间, 一定要用</p>
 </li>
 </ol>
-<p>##踩过的坑</p>
-<ol>
+<h2 id="踩过的坑"><a href="#踩过的坑" class="headerlink" title="踩过的坑"></a>踩过的坑</h2><ol>
 <li><p>Region Server OOM</p>
 <ul>
 <li>现象<br>region server 出现 OOM</li>
@@ -526,17 +519,17 @@
 </ul>
 </li>
 </ol>
-<p>##用 Zookeeper 管理多个集群<br>Zookeeper 是协调器, 轻量级, load 很低, 多个 hbase 通过 zookeeper.znode.parent配置到不同目录使用同一个 zookeeper 集群在集群多的时候提高运维效率, 节约点服务器</p>
-<p>##关于数据导入需求<br>个人不建议使用replication, 没用过, 而且听说坑比较多, (Hbase 里面你看起来那些越智能, 越方便的功能, 通常使用下来会发现非常坑爹)<br>建议使用bulkload, 原因是速度非常快, 适合导入场景, 在建表的时候一定要做好region 预切分, HFileOutputFormat.configureIncrementalLoad方法会根据region 数量来决定 reduce的数量和每个 reduce覆盖的 rowkey 范围, 否则某个 reduce任务过多, 降低导入性能<br>单个rowkey 下子列不要太多, 否则reduce 阶段排序会出现 oom, 你们也可以通过二次排序避免 reduce 去排序, 到时候看<br>bulkload 执行完毕之后需要把 hdfs 中生成好的文件写入到hbase 表中, 采用hadoop jar hbase- version.jar completebulkload /hfilepath tablename 命令实现。hadoop-lzo jar,LzoTextInputFormat, 黑科技, 支持 lzo 数据导入, 避免自定义压缩格式导入导出之前的解压缩操作</p>
-<p>##BlockCache 缓存(吐槽)<br>默认的blockcache 实现, 使用一个 hashmap 来维护 block key -&gt; block 的映射关系, 采用严格的LRU算法(有兴趣自己 google)来进行淘汰, 初始化会指定容量大小, 当使用量达到85%就开始淘汰block到75%<br>好处是直接使用jvm 的 hashmap, 简单, 内存用多少算多少, jvm 会帮你回收你释放的 block(by GC)<br>坏处一个 block从缓存到淘汰, 在 heap 中得位置从 new 到 old, 然后 old 区的缓存被淘汰之后, 就由 CMS 来回收, 然后就是 heap 碎片的问题, 又因为碎片的问题, 导致 FGC, 根据应用的情况, FGC 发生频率可能一个月, 一周, 甚至半年一天都可能, 所以避免作死, 最好还是低峰期手工来 GC<br>如果缓存的速度比淘汰的速度快, oops, 很有可能OOM(就挂了)</p>
-<p>##Hbase 的 GC<br>和女人心情一样, 随时都有可能出现的 FGC 会导致hbase 集群性能急剧下降, 导致客户端操作更严重超过 zookeeper 的超时时间导致 zookeeper 把这个 region 下线(从而导致后续一系列悲剧), blockcache 大量加载的时候(载入 block 到内存)出现的 ygc时间可能超过500ms, 个别情况 ygc 会长期保持在200ms 水平, 你在性能测试的时候会看到毛刺就是因为这个<br>典型的配置jvm head通常会开到34G, 其中 new 会设置到2-4G, CMS 发生比率配置在75%<br>根据应用场景不同, 如果要避免内存碎片过多, 会把 CMS 设置到65%, 这样其实牺牲了LRUcache 的大小, 影响了部分性能.<br>Hbase 出现FGC 绝大多数原因是因为内存碎片, 大部分场景是在连续混合读写后, 如果瞬间出现大量低命中读, 并伴随大量blockcache 加载, 就很容易出现.</p>
-<p>##Bloomfilter 是个好东西<br>为数不多看起来智能好用又不坑的东西, 提高随机读取的性能,对顺序读取没啥帮助, 在生成Storefile 的时候会包括 bloomfilter信息, metablock, 存在 blockcache 中, 对于某个 region 的随机读, hbase会遍历读memstore和 storefile, 将结果merge 后返回给客户端, 如果你设置了 bloomfilter, 那么在读取storefile 的时候就可以直接跳过一些storefile.</p>
+<h2 id="用-Zookeeper-管理多个集群"><a href="#用-Zookeeper-管理多个集群" class="headerlink" title="用 Zookeeper 管理多个集群"></a>用 Zookeeper 管理多个集群</h2><p>Zookeeper 是协调器, 轻量级, load 很低, 多个 hbase 通过 zookeeper.znode.parent配置到不同目录使用同一个 zookeeper 集群在集群多的时候提高运维效率, 节约点服务器</p>
+<h2 id="关于数据导入需求"><a href="#关于数据导入需求" class="headerlink" title="关于数据导入需求"></a>关于数据导入需求</h2><p>个人不建议使用replication, 没用过, 而且听说坑比较多, (Hbase 里面你看起来那些越智能, 越方便的功能, 通常使用下来会发现非常坑爹)<br>建议使用bulkload, 原因是速度非常快, 适合导入场景, 在建表的时候一定要做好region 预切分, HFileOutputFormat.configureIncrementalLoad方法会根据region 数量来决定 reduce的数量和每个 reduce覆盖的 rowkey 范围, 否则某个 reduce任务过多, 降低导入性能<br>单个rowkey 下子列不要太多, 否则reduce 阶段排序会出现 oom, 你们也可以通过二次排序避免 reduce 去排序, 到时候看<br>bulkload 执行完毕之后需要把 hdfs 中生成好的文件写入到hbase 表中, 采用hadoop jar hbase- version.jar completebulkload /hfilepath tablename 命令实现。hadoop-lzo jar,LzoTextInputFormat, 黑科技, 支持 lzo 数据导入, 避免自定义压缩格式导入导出之前的解压缩操作</p>
+<h2 id="BlockCache-缓存-吐槽"><a href="#BlockCache-缓存-吐槽" class="headerlink" title="BlockCache 缓存(吐槽)"></a>BlockCache 缓存(吐槽)</h2><p>默认的blockcache 实现, 使用一个 hashmap 来维护 block key -&gt; block 的映射关系, 采用严格的LRU算法(有兴趣自己 google)来进行淘汰, 初始化会指定容量大小, 当使用量达到85%就开始淘汰block到75%<br>好处是直接使用jvm 的 hashmap, 简单, 内存用多少算多少, jvm 会帮你回收你释放的 block(by GC)<br>坏处一个 block从缓存到淘汰, 在 heap 中得位置从 new 到 old, 然后 old 区的缓存被淘汰之后, 就由 CMS 来回收, 然后就是 heap 碎片的问题, 又因为碎片的问题, 导致 FGC, 根据应用的情况, FGC 发生频率可能一个月, 一周, 甚至半年一天都可能, 所以避免作死, 最好还是低峰期手工来 GC<br>如果缓存的速度比淘汰的速度快, oops, 很有可能OOM(就挂了)</p>
+<h2 id="Hbase-的-GC"><a href="#Hbase-的-GC" class="headerlink" title="Hbase 的 GC"></a>Hbase 的 GC</h2><p>和女人心情一样, 随时都有可能出现的 FGC 会导致hbase 集群性能急剧下降, 导致客户端操作更严重超过 zookeeper 的超时时间导致 zookeeper 把这个 region 下线(从而导致后续一系列悲剧), blockcache 大量加载的时候(载入 block 到内存)出现的 ygc时间可能超过500ms, 个别情况 ygc 会长期保持在200ms 水平, 你在性能测试的时候会看到毛刺就是因为这个<br>典型的配置jvm head通常会开到34G, 其中 new 会设置到2-4G, CMS 发生比率配置在75%<br>根据应用场景不同, 如果要避免内存碎片过多, 会把 CMS 设置到65%, 这样其实牺牲了LRUcache 的大小, 影响了部分性能.<br>Hbase 出现FGC 绝大多数原因是因为内存碎片, 大部分场景是在连续混合读写后, 如果瞬间出现大量低命中读, 并伴随大量blockcache 加载, 就很容易出现.</p>
+<h2 id="Bloomfilter-是个好东西"><a href="#Bloomfilter-是个好东西" class="headerlink" title="Bloomfilter 是个好东西"></a>Bloomfilter 是个好东西</h2><p>为数不多看起来智能好用又不坑的东西, 提高随机读取的性能,对顺序读取没啥帮助, 在生成Storefile 的时候会包括 bloomfilter信息, metablock, 存在 blockcache 中, 对于某个 region 的随机读, hbase会遍历读memstore和 storefile, 将结果merge 后返回给客户端, 如果你设置了 bloomfilter, 那么在读取storefile 的时候就可以直接跳过一些storefile.</p>
 <ul>
 <li>region下的 storefile 越多 bloomfilter 效果越好</li>
 <li>region 下得 storefile 越少 hbase 读取性能就越好</li>
 </ul>
-<p>##毁灭性事故<br>某次运维将hbase.hregion.max.files设置成0了, 导致 region 无限制 split, 导致region offline, 从而你没法去挽救这种情况<br>解决办法就是到HDFS 中删除.META 文件/HDFS 文件/ZK 文件, 然后重启集群<br>只能挽救集群, 删除的文件中数据想办法恢复</p>
-<p>##Region server compact 占用大量带宽<br>Hbase 集群运行过程中部分 region server 直接将网络 IO 跑满 千兆网卡*2 同时机器负载也非常高<br>最后发现是大量写入造成频繁compaction<br>解决的办法就是减少 compaction</p>
+<h2 id="毁灭性事故"><a href="#毁灭性事故" class="headerlink" title="毁灭性事故"></a>毁灭性事故</h2><p>某次运维将hbase.hregion.max.files设置成0了, 导致 region 无限制 split, 导致region offline, 从而你没法去挽救这种情况<br>解决办法就是到HDFS 中删除.META 文件/HDFS 文件/ZK 文件, 然后重启集群<br>只能挽救集群, 删除的文件中数据想办法恢复</p>
+<h2 id="Region-server-compact-占用大量带宽"><a href="#Region-server-compact-占用大量带宽" class="headerlink" title="Region server compact 占用大量带宽"></a>Region server compact 占用大量带宽</h2><p>Hbase 集群运行过程中部分 region server 直接将网络 IO 跑满 千兆网卡*2 同时机器负载也非常高<br>最后发现是大量写入造成频繁compaction<br>解决的办法就是减少 compaction</p>
 
       
     </div>
@@ -560,9 +553,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/BigData/" rel="tag"># BigData</a>
-          
-            <a href="/tags/Hbase/" rel="tag"># Hbase</a>
+            <a href="/tags/Hbase-Bigdata/" rel="tag"># Hbase, Bigdata</a>
           
         </div>
       
@@ -627,8 +618,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <div class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <div class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -693,21 +693,7 @@
                     
                       
                     
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                      
-                    
-                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-count">5</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -734,6 +720,23 @@
         </div>
       </div>
 
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#线上关注点"><span class="nav-number">1.</span> <span class="nav-text">线上关注点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#日志"><span class="nav-number">2.</span> <span class="nav-text">日志</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#监控工具"><span class="nav-number">3.</span> <span class="nav-text">监控工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工具"><span class="nav-number">4.</span> <span class="nav-text">工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#系统指令"><span class="nav-number">5.</span> <span class="nav-text">系统指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#可能会遇到的问题"><span class="nav-number">6.</span> <span class="nav-text">可能会遇到的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一些主要但是容易被忽略的配置"><span class="nav-number">7.</span> <span class="nav-text">一些主要但是容易被忽略的配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#踩过的坑"><span class="nav-number">8.</span> <span class="nav-text">踩过的坑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用-Zookeeper-管理多个集群"><span class="nav-number">9.</span> <span class="nav-text">用 Zookeeper 管理多个集群</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关于数据导入需求"><span class="nav-number">10.</span> <span class="nav-text">关于数据导入需求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BlockCache-缓存-吐槽"><span class="nav-number">11.</span> <span class="nav-text">BlockCache 缓存(吐槽)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hbase-的-GC"><span class="nav-number">12.</span> <span class="nav-text">Hbase 的 GC</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bloomfilter-是个好东西"><span class="nav-number">13.</span> <span class="nav-text">Bloomfilter 是个好东西</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#毁灭性事故"><span class="nav-number">14.</span> <span class="nav-text">毁灭性事故</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Region-server-compact-占用大量带宽"><span class="nav-number">15.</span> <span class="nav-text">Region server compact 占用大量带宽</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
       
 
       
