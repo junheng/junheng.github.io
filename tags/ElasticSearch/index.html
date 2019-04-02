@@ -187,7 +187,7 @@
     </div>
     
       
-        <p class="site-subtitle">学而不思则罔, 思而不学则殆</p>
+        <h1 class="site-subtitle" itemprop="description">学而不思则罔, 思而不学则殆</h1>
       
     
     
@@ -355,8 +355,8 @@
 
     <div id="posts" class="posts-collapse">
       <div class="collection-title">
-        <h1>Elasticsearch<small>标签</small>
-        </h1>
+        <h2>Elasticsearch<small>标签</small>
+        </h2>
       </div>
 
       
@@ -365,7 +365,7 @@
   <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
     <header class="post-header">
 
-      <h2 class="post-title">
+      <h3 class="post-title">
         
           <a class="post-title-link" href="/2015/04/27/elasticsearch-tips/" itemprop="url">
             
@@ -373,7 +373,7 @@
             
           </a>
         
-      </h2>
+      </h3>
 
       <div class="post-meta">
         <time class="post-time" itemprop="dateCreated" datetime="2015-04-27T14:05:14+08:00" content="4月 27 2015">
@@ -716,7 +716,34 @@
     }
   });
 </script>
-<script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- Begin: Injected MathJax -->
+<script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    
+  
+
+
+  
+
+  
+<script>
+if ($('body').find('pre.mermaid').length) {
+  $.ajax({
+    type: 'GET',
+    url: '//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js',
+    dataType: 'script',
+    cache: true,
+    success: function() {
+      mermaid.initialize({
+        theme: 'forest',
+        logLevel: 3,
+        flowchart: { curve: 'linear' },
+        gantt: { axisFormat: '%m/%d/%Y' },
+        sequence: { actorMargin: 50 }
+      });
+    }
+  });
+}
+</script><!-- hexo-inject:begin --><!-- Begin: Injected MathJax -->
 <script type="text/x-mathjax-config">
   MathJax.Hub.Config("");
 </script>
@@ -735,13 +762,6 @@
 <!-- End: Injected MathJax -->
 <!-- hexo-inject:end -->
 
-    
-  
-
-
-  
-
-  
 
   
 

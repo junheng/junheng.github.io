@@ -188,7 +188,7 @@
     </div>
     
       
-        <p class="site-subtitle">学而不思则罔, 思而不学则殆</p>
+        <h1 class="site-subtitle" itemprop="description">学而不思则罔, 思而不学则殆</h1>
       
     
     
@@ -360,13 +360,13 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
+          <h2 class="post-title" itemprop="name headline">
                 
                 
                 <a href="/2019/03/26/Spark基础概念/" class="post-title-link" itemprop="url">Spark 基础概念</a>
               
             
-          </h1>
+          </h2>
         
 
         <div class="post-meta">
@@ -532,13 +532,13 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
+          <h2 class="post-title" itemprop="name headline">
                 
                 
                 <a href="/2019/03/26/强化学习概念/" class="post-title-link" itemprop="url">增强学习概念</a>
               
             
-          </h1>
+          </h2>
         
 
         <div class="post-meta">
@@ -717,13 +717,13 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
+          <h2 class="post-title" itemprop="name headline">
                 
                 
                 <a href="/2019/03/20/基于Hexo的使用备忘/" class="post-title-link" itemprop="url">Hexo 的使用备忘</a>
               
             
-          </h1>
+          </h2>
         
 
         <div class="post-meta">
@@ -905,13 +905,13 @@ hexo init &lt;blog_d
 
         
         
-          <h1 class="post-title" itemprop="name headline">
+          <h2 class="post-title" itemprop="name headline">
                 
                 
                 <a href="/2015/04/27/elasticsearch-tips/" class="post-title-link" itemprop="url">Elasticsearch Tips</a>
               
             
-          </h1>
+          </h2>
         
 
         <div class="post-meta">
@@ -1075,13 +1075,13 @@ hexo init &lt;blog_d
 
         
         
-          <h1 class="post-title" itemprop="name headline">
+          <h2 class="post-title" itemprop="name headline">
                 
                 
                 <a href="/2015/02/24/MacOS小技巧/" class="post-title-link" itemprop="url">MAC OS X 小技巧</a>
               
             
-          </h1>
+          </h2>
         
 
         <div class="post-meta">
@@ -1259,13 +1259,13 @@ hexo init &lt;blog_d
 
         
         
-          <h1 class="post-title" itemprop="name headline">
+          <h2 class="post-title" itemprop="name headline">
                 
                 
                 <a href="/2014/11/21/Hbase使用经验/" class="post-title-link" itemprop="url">Hbase 经验总结</a>
               
             
-          </h1>
+          </h2>
         
 
         <div class="post-meta">
@@ -1744,7 +1744,34 @@ hexo init &lt;blog_d
     }
   });
 </script>
-<script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- Begin: Injected MathJax -->
+<script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    
+  
+
+
+  
+
+  
+<script>
+if ($('body').find('pre.mermaid').length) {
+  $.ajax({
+    type: 'GET',
+    url: '//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js',
+    dataType: 'script',
+    cache: true,
+    success: function() {
+      mermaid.initialize({
+        theme: 'forest',
+        logLevel: 3,
+        flowchart: { curve: 'linear' },
+        gantt: { axisFormat: '%m/%d/%Y' },
+        sequence: { actorMargin: 50 }
+      });
+    }
+  });
+}
+</script><!-- hexo-inject:begin --><!-- Begin: Injected MathJax -->
 <script type="text/x-mathjax-config">
   MathJax.Hub.Config("");
 </script>
@@ -1763,13 +1790,6 @@ hexo init &lt;blog_d
 <!-- End: Injected MathJax -->
 <!-- hexo-inject:end -->
 
-    
-  
-
-
-  
-
-  
 
   
 
