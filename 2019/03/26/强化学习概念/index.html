@@ -104,7 +104,7 @@
 <meta property="og:site_name" content="Memory Unit 01">
 <meta property="og:description" content="目录 概述 有模型的学习 策略,环境和奖励 进行学习 策略迭代 价值迭代     蒙特卡洛方法 资料引用  概述增强学习的过程大概可以用一场游戏来表示, 玩家在一个状态下, 基于一个策略做出一个行为, 这个行为在环境中导致环境变化并且玩家的状态也发生了变化, 在新的状态下, 玩家会得到奖励(奖励可能是负面的), 那么 在有限的回合中, 玩家的目标是在到游戏最后时, 将奖励最大化.用一个流程图来表示">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-04-02T06:13:19.796Z">
+<meta property="og:updated_time" content="2019-04-02T06:18:45.232Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="增强学习概念">
 <meta name="twitter:description" content="目录 概述 有模型的学习 策略,环境和奖励 进行学习 策略迭代 价值迭代     蒙特卡洛方法 资料引用  概述增强学习的过程大概可以用一场游戏来表示, 玩家在一个状态下, 基于一个策略做出一个行为, 这个行为在环境中导致环境变化并且玩家的状态也发生了变化, 在新的状态下, 玩家会得到奖励(奖励可能是负面的), 那么 在有限的回合中, 玩家的目标是在到游戏最后时, 将奖励最大化.用一个流程图来表示">
@@ -404,7 +404,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：4月 2 2019 14:13:19" itemprop="dateModified" datetime="2019-04-02T14:13:19+08:00">4月 2 2019</time>
+                <time title="修改时间：4月 2 2019 14:18:45" itemprop="dateModified" datetime="2019-04-02T14:18:45+08:00">4月 2 2019</time>
               
             
           </span>
@@ -479,6 +479,14 @@ Policy --make action --> Environment
 Environment --state transition & enviroment changed--> nState[New State]
 nState --state reward--> Agent
           </pre>
+<pre class="mermaid">graph TD
+Agent --current state--> Policy
+Policy --make action --> Environment
+Environment --state transition & enviroment changed--> nState[New State]
+nState --state reward--> Agent</pre>
+
+
+
 <ol>
 <li>Agent 玩家</li>
 <li>Policy 策略</li>
